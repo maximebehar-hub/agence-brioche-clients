@@ -46,9 +46,15 @@ export default function ClientDetailPage() {
 
   const loadClient = async () => {
     setLoading(true)
-    let { data } = await supabase.from('portal_clients').select('*').eq('slug', idOrSlug).single()
-    if (!data) {
+    // Essai par ID d'abord (UUID), puis par slug
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug)
+    let data
+    if (isUUID) {
       const res = await supabase.from('portal_clients').select('*').eq('id', idOrSlug).single()
+      data = res.data
+    }
+    if (!data) {
+      const res = await supabase.from('portal_clients').select('*').eq('slug', idOrSlug).single()
       data = res.data
     }
     setClient(data)

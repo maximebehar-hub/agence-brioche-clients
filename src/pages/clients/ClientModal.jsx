@@ -62,12 +62,13 @@ export default function ClientModal({ client, onClose, onSaved }) {
     setSaving(true)
 
     const logo_url = await uploadLogo()
-    const slug = slugify(form.name)
-    const payload = { ...form, slug, logo_url }
+    const payload = { ...form, logo_url }
 
     if (isEdit) {
+      // Ne pas écraser le slug en édition pour éviter de casser les URLs
       await supabase.from('portal_clients').update(payload).eq('id', client.id)
     } else {
+      payload.slug = slugify(form.name)
       await supabase.from('portal_clients').insert(payload)
     }
 
