@@ -5,8 +5,16 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIU
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-export const signInWithEmail = async (email, password) => {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+export const signInWithGoogle = async () => {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin,
+      queryParams: {
+        hd: 'agencebrioche.fr'
+      }
+    }
+  })
   if (error) throw error
   return data
 }
