@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { Calendar, FileText, BarChart3, FolderOpen, Pencil, ExternalLink, Trash2, Settings } from 'lucide-react'
+import { InstagramIcon, TikTokIcon, LinkedInIcon, YouTubeIcon, TwitterIcon, FacebookIcon } from '../../components/SocialIcons'
 import clsx from 'clsx'
 import { useStore } from '../../lib/store'
 import AgendaTab from './AgendaTab'
@@ -27,12 +28,12 @@ const STATUS_BADGE = {
 const STATUS_LABEL = { actif: 'Actif', en_attente: 'En attente', inactif: 'Inactif' }
 
 const RS_CONFIG = [
-  { key: 'rs_instagram', label: 'IG' },
-  { key: 'rs_tiktok', label: 'TK' },
-  { key: 'rs_linkedin', label: 'IN' },
-  { key: 'rs_youtube', label: 'YT' },
-  { key: 'rs_x', label: '𝕏' },
-  { key: 'rs_facebook', label: 'FB' }
+  { key: 'rs_instagram', icon: InstagramIcon },
+  { key: 'rs_tiktok', icon: TikTokIcon },
+  { key: 'rs_linkedin', icon: LinkedInIcon },
+  { key: 'rs_youtube', icon: YouTubeIcon },
+  { key: 'rs_x', icon: TwitterIcon },
+  { key: 'rs_facebook', icon: FacebookIcon }
 ]
 
 export default function ClientDetailPage() {
@@ -124,9 +125,10 @@ export default function ClientDetailPage() {
                 <div className="flex items-center gap-2 mt-3 flex-wrap">
                   {activeRS.map(rs => {
                     const link = rsLink(client[rs.key])
+                    const Icon = rs.icon
                     const content = (
                       <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-lg text-xs text-gray-600 hover:bg-gray-200 transition-colors">
-                        <span className="text-[10px] font-bold text-gray-500">{rs.label}</span>
+                        <Icon size={13} className="text-gray-500 shrink-0" />
                         <span>{client[rs.key]}</span>
                         {link && <ExternalLink size={10} className="text-gray-400" />}
                       </div>

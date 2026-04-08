@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { Plus, Trash2, ExternalLink, Star } from 'lucide-react'
 import clsx from 'clsx'
 import { getDaysInMonth } from 'date-fns'
+import { RS_ICON_MAP } from '../../components/SocialIcons'
 
 const CONTENT_TYPES = ['Visuel', 'Carrousel', 'Vidéo', 'Story', 'Article', 'Newsletter']
 const RS_OPTIONS = [
@@ -116,7 +117,11 @@ export default function PostsTab({ client }) {
     updatePost(post.id, 'scheduled_at', scheduled_at)
   }
 
-  const rsLabel = (platform) => RS_OPTIONS.find(r => r.value === platform)?.label || platform || '—'
+  const RsIcon = ({ platform, size = 14 }) => {
+    const Icon = RS_ICON_MAP[platform]
+    if (!Icon) return <span className="text-[10px] text-gray-400">—</span>
+    return <Icon size={size} className="text-gray-600" />
+  }
 
   return (
     <div className="space-y-3">
@@ -250,10 +255,13 @@ export default function PostsTab({ client }) {
                     </td>
                     {/* RS */}
                     <td className={tdCls}>
-                      <select value={p.platform || ''} onChange={e => updatePost(p.id, 'platform', e.target.value)} className={selectCls + ' font-bold'}>
-                        <option value="">—</option>
-                        {RS_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
-                      </select>
+                      <div className="flex items-center gap-1">
+                        <RsIcon platform={p.platform} size={12} />
+                        <select value={p.platform || ''} onChange={e => updatePost(p.id, 'platform', e.target.value)} className={selectCls + ' flex-1'}>
+                          <option value="">—</option>
+                          {RS_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                        </select>
+                      </div>
                     </td>
                     {/* Sponso */}
                     <td className={tdCls + ' text-center'}>
@@ -328,8 +336,10 @@ export default function PostsTab({ client }) {
                   </>
                 ) : (
                   <>
-                    {/* RS (read-only label) */}
-                    <td className={tdCls + ' font-bold text-center'}>{rsLabel(p.platform)}</td>
+                    {/* RS (icon) */}
+                    <td className={tdCls + ' text-center'}>
+                      <div className="flex items-center justify-center"><RsIcon platform={p.platform} size={14} /></div>
+                    </td>
                     {/* Impressions */}
                     <td className={tdCls}>
                       <input type="number" value={p.impressions ?? ''} onChange={e => updatePost(p.id, 'impressions', +e.target.value || null)}
