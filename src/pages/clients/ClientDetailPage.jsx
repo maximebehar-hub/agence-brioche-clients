@@ -28,9 +28,9 @@ export default function ClientDetailPage() {
   const loadClient = async () => {
     setLoading(true)
     // Essai par slug d'abord, puis par ID
-    let { data } = await supabase.from('clients').select('*').eq('slug', idOrSlug).single()
+    let { data } = await supabase.from('portal_clients').select('*').eq('slug', idOrSlug).single()
     if (!data) {
-      const res = await supabase.from('clients').select('*').eq('id', idOrSlug).single()
+      const res = await supabase.from('portal_clients').select('*').eq('id', idOrSlug).single()
       data = res.data
     }
     setClient(data)

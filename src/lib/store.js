@@ -6,7 +6,7 @@ export const useStore = create((set, get) => ({
   setUser: (user) => set({ user }),
   clearUser: () => set({ user: null }),
 
-  getRole: () => get().user?.role || null,
+  getRole: () => get().user?.portal_role || null,
 
   isAdmin: () => {
     const role = get().getRole()

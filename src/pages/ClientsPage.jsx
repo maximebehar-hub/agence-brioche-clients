@@ -13,8 +13,8 @@ export default function ClientsPage() {
 
   const loadClients = async () => {
     const { data } = await supabase
-      .from('clients')
-      .select('*, posts(id)')
+      .from('portal_clients')
+      .select('*, portal_posts(id)')
       .order('name')
     setClients(data || [])
     setLoading(false)
@@ -58,7 +58,7 @@ export default function ClientsPage() {
                   )}
                   <div>
                     <h3 className="font-bold text-gray-900 group-hover:text-brioche-violet transition-colors">{cl.name}</h3>
-                    <p className="text-xs text-gray-400">{cl.posts?.length || 0} posts</p>
+                    <p className="text-xs text-gray-400">{cl.portal_posts?.length || 0} posts</p>
                   </div>
                 </div>
               </div>

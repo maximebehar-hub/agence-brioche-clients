@@ -17,7 +17,7 @@ export default function Layout({ children }) {
   useEffect(() => {
     if (!isAdmin()) return
     supabase
-      .from('clients')
+      .from('portal_clients')
       .select('id, name, slug, color')
       .order('name')
       .then(({ data }) => setClients(data || []))
@@ -57,7 +57,7 @@ export default function Layout({ children }) {
     : '?'
 
   const ROLE_LABELS = { admin: 'Admin', direction: 'Direction', client: 'Client' }
-  const roleLabel = ROLE_LABELS[user?.role] || 'Utilisateur'
+  const roleLabel = ROLE_LABELS[user?.portal_role] || 'Utilisateur'
 
   return (
     <div className="flex min-h-screen">

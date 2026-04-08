@@ -1,97 +1,87 @@
 -- =============================================
--- Row-Level Security (RLS)
+-- Row-Level Security (RLS) — Tables portal_*
 -- =============================================
 
--- Activer RLS sur toutes les tables
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
-ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE events ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stats ENABLE ROW LEVEL SECURITY;
-ALTER TABLE assets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE portal_clients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE portal_posts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE portal_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE portal_stats ENABLE ROW LEVEL SECURITY;
+ALTER TABLE portal_assets ENABLE ROW LEVEL SECURITY;
 
--- Helper : récupérer le rôle de l'utilisateur connecté
-CREATE OR REPLACE FUNCTION get_user_role()
+-- Helper : récupérer le portal_role de l'utilisateur connecté
+CREATE OR REPLACE FUNCTION get_portal_role()
 RETURNS TEXT AS $$
-  SELECT role FROM profiles WHERE id = auth.uid()
+  SELECT portal_role FROM profiles WHERE id = auth.uid()
 $$ LANGUAGE sql SECURITY DEFINER STABLE;
 
--- Helper : récupérer le client_id de l'utilisateur connecté
-CREATE OR REPLACE FUNCTION get_user_client_id()
+-- Helper : récupérer le portal_client_id de l'utilisateur connecté
+CREATE OR REPLACE FUNCTION get_portal_client_id()
 RETURNS UUID AS $$
-  SELECT client_id FROM profiles WHERE id = auth.uid()
+  SELECT portal_client_id FROM profiles WHERE id = auth.uid()
 $$ LANGUAGE sql SECURITY DEFINER STABLE;
 
--- PROFILES
-CREATE POLICY "profiles_select" ON profiles FOR SELECT USING (
-  id = auth.uid() OR get_user_role() IN ('admin', 'direction')
+-- PORTAL_CLIENTS
+CREATE POLICY "portal_clients_select" ON portal_clients FOR SELECT USING (
+  get_portal_role() IN ('admin', 'direction')
+  OR id = get_portal_client_id()
 );
-CREATE POLICY "profiles_update" ON profiles FOR UPDATE USING (
-  id = auth.uid() OR get_user_role() = 'admin'
+CREATE POLICY "portal_clients_insert" ON portal_clients FOR INSERT WITH CHECK (
+  get_portal_role() IN ('admin', 'direction')
 );
-
--- CLIENTS
-CREATE POLICY "clients_select" ON clients FOR SELECT USING (
-  get_user_role() IN ('admin', 'direction')
-  OR id = get_user_client_id()
+CREATE POLICY "portal_clients_update" ON portal_clients FOR UPDATE USING (
+  get_portal_role() IN ('admin', 'direction')
 );
-CREATE POLICY "clients_insert" ON clients FOR INSERT WITH CHECK (
-  get_user_role() IN ('admin', 'direction')
-);
-CREATE POLICY "clients_update" ON clients FOR UPDATE USING (
-  get_user_role() IN ('admin', 'direction')
-);
-CREATE POLICY "clients_delete" ON clients FOR DELETE USING (
-  get_user_role() = 'admin'
+CREATE POLICY "portal_clients_delete" ON portal_clients FOR DELETE USING (
+  get_portal_role() = 'admin'
 );
 
--- POSTS
-CREATE POLICY "posts_select" ON posts FOR SELECT USING (
-  get_user_role() IN ('admin', 'direction')
-  OR client_id = get_user_client_id()
+-- PORTAL_POSTS
+CREATE POLICY "portal_posts_select" ON portal_posts FOR SELECT USING (
+  get_portal_role() IN ('admin', 'direction')
+  OR client_id = get_portal_client_id()
 );
-CREATE POLICY "posts_insert" ON posts FOR INSERT WITH CHECK (
-  get_user_role() IN ('admin', 'direction')
+CREATE POLICY "portal_posts_insert" ON portal_posts FOR INSERT WITH CHECK (
+  get_portal_role() IN ('admin', 'direction')
 );
-CREATE POLICY "posts_update" ON posts FOR UPDATE USING (
-  get_user_role() IN ('admin', 'direction')
+CREATE POLICY "portal_posts_update" ON portal_posts FOR UPDATE USING (
+  get_portal_role() IN ('admin', 'direction')
 );
-CREATE POLICY "posts_delete" ON posts FOR DELETE USING (
-  get_user_role() IN ('admin', 'direction')
-);
-
--- EVENTS
-CREATE POLICY "events_select" ON events FOR SELECT USING (
-  get_user_role() IN ('admin', 'direction')
-  OR client_id = get_user_client_id()
-);
-CREATE POLICY "events_insert" ON events FOR INSERT WITH CHECK (
-  get_user_role() IN ('admin', 'direction')
-);
-CREATE POLICY "events_update" ON events FOR UPDATE USING (
-  get_user_role() IN ('admin', 'direction')
-);
-CREATE POLICY "events_delete" ON events FOR DELETE USING (
-  get_user_role() IN ('admin', 'direction')
+CREATE POLICY "portal_posts_delete" ON portal_posts FOR DELETE USING (
+  get_portal_role() IN ('admin', 'direction')
 );
 
--- STATS
-CREATE POLICY "stats_select" ON stats FOR SELECT USING (
-  get_user_role() IN ('admin', 'direction')
-  OR client_id = get_user_client_id()
+-- PORTAL_EVENTS
+CREATE POLICY "portal_events_select" ON portal_events FOR SELECT USING (
+  get_portal_role() IN ('admin', 'direction')
+  OR client_id = get_portal_client_id()
 );
-CREATE POLICY "stats_insert" ON stats FOR INSERT WITH CHECK (
-  get_user_role() IN ('admin', 'direction')
+CREATE POLICY "portal_events_insert" ON portal_events FOR INSERT WITH CHECK (
+  get_portal_role() IN ('admin', 'direction')
+);
+CREATE POLICY "portal_events_update" ON portal_events FOR UPDATE USING (
+  get_portal_role() IN ('admin', 'direction')
+);
+CREATE POLICY "portal_events_delete" ON portal_events FOR DELETE USING (
+  get_portal_role() IN ('admin', 'direction')
 );
 
--- ASSETS
-CREATE POLICY "assets_select" ON assets FOR SELECT USING (
-  get_user_role() IN ('admin', 'direction')
-  OR client_id = get_user_client_id()
+-- PORTAL_STATS
+CREATE POLICY "portal_stats_select" ON portal_stats FOR SELECT USING (
+  get_portal_role() IN ('admin', 'direction')
+  OR client_id = get_portal_client_id()
 );
-CREATE POLICY "assets_insert" ON assets FOR INSERT WITH CHECK (
-  get_user_role() IN ('admin', 'direction')
+CREATE POLICY "portal_stats_insert" ON portal_stats FOR INSERT WITH CHECK (
+  get_portal_role() IN ('admin', 'direction')
 );
-CREATE POLICY "assets_delete" ON assets FOR DELETE USING (
-  get_user_role() IN ('admin', 'direction')
+
+-- PORTAL_ASSETS
+CREATE POLICY "portal_assets_select" ON portal_assets FOR SELECT USING (
+  get_portal_role() IN ('admin', 'direction')
+  OR client_id = get_portal_client_id()
+);
+CREATE POLICY "portal_assets_insert" ON portal_assets FOR INSERT WITH CHECK (
+  get_portal_role() IN ('admin', 'direction')
+);
+CREATE POLICY "portal_assets_delete" ON portal_assets FOR DELETE USING (
+  get_portal_role() IN ('admin', 'direction')
 );

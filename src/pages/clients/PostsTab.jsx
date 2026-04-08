@@ -20,7 +20,7 @@ export default function PostsTab({ client }) {
 
   const loadPosts = async () => {
     const { data } = await supabase
-      .from('posts')
+      .from('portal_posts')
       .select('*')
       .eq('client_id', client.id)
       .order('scheduled_at', { ascending: false })

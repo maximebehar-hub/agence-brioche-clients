@@ -31,12 +31,12 @@ export default function AgendaTab({ client }) {
     const end = endOfMonth(currentDate)
 
     const [eventsRes, postsRes] = await Promise.all([
-      supabase.from('events')
+      supabase.from('portal_events')
         .select('*')
         .eq('client_id', client.id)
         .gte('start_at', start.toISOString())
         .lte('start_at', end.toISOString()),
-      supabase.from('posts')
+      supabase.from('portal_posts')
         .select('id, caption, platform, status, scheduled_at')
         .eq('client_id', client.id)
         .gte('scheduled_at', start.toISOString())

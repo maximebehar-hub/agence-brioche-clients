@@ -26,8 +26,8 @@ export default function PostsPage() {
 
   const loadPosts = async () => {
     const { data } = await supabase
-      .from('posts')
-      .select('*, clients(name, color, slug)')
+      .from('portal_posts')
+      .select('*, portal_clients(name, color, slug)')
       .order('scheduled_at', { ascending: false })
     setPosts(data || [])
     setLoading(false)
@@ -36,7 +36,7 @@ export default function PostsPage() {
   const filtered = posts.filter(p => {
     if (platformFilter !== 'Tous' && p.platform !== platformFilter) return false
     if (statusFilter !== 'Tous' && p.status !== statusFilter) return false
-    if (search && !p.caption?.toLowerCase().includes(search.toLowerCase()) && !p.clients?.name?.toLowerCase().includes(search.toLowerCase())) return false
+    if (search && !p.caption?.toLowerCase().includes(search.toLowerCase()) && !p.portal_clients?.name?.toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
 
@@ -93,8 +93,8 @@ export default function PostsPage() {
                 <tr key={post.id} className="border-b border-gray-50 hover:bg-brioche-beige/50 transition-colors">
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full" style={{ background: post.clients?.color || '#5622d9' }} />
-                      <span className="text-sm font-medium text-gray-700">{post.clients?.name || '—'}</span>
+                      <div className="w-2 h-2 rounded-full" style={{ background: post.portal_clients?.color || '#5622d9' }} />
+                      <span className="text-sm font-medium text-gray-700">{post.portal_clients?.name || '—'}</span>
                     </div>
                   </td>
                   <td className="px-5 py-3">

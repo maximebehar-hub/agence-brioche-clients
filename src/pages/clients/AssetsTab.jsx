@@ -28,7 +28,7 @@ export default function AssetsTab({ client }) {
 
   const loadAssets = async () => {
     const { data } = await supabase
-      .from('assets')
+      .from('portal_assets')
       .select('*')
       .eq('client_id', client.id)
       .order('created_at', { ascending: false })

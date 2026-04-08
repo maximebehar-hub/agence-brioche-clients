@@ -16,9 +16,9 @@ export default function Dashboard() {
 
   const loadDashboard = async () => {
     const [clientsRes, postsRes, eventsRes] = await Promise.all([
-      supabase.from('clients').select('id, name, slug, color, logo_url'),
-      supabase.from('posts').select('id, client_id, platform, status, caption, scheduled_at, clients(name, color)').order('scheduled_at', { ascending: false }).limit(10),
-      supabase.from('events').select('id').gte('start_at', new Date().toISOString())
+      supabase.from('portal_clients').select('id, name, slug, color, logo_url'),
+      supabase.from('portal_posts').select('id, client_id, platform, status, caption, scheduled_at, portal_clients(name, color)').order('scheduled_at', { ascending: false }).limit(10),
+      supabase.from('portal_events').select('id').gte('start_at', new Date().toISOString())
     ])
 
     const clients = clientsRes.data || []
@@ -102,10 +102,10 @@ export default function Dashboard() {
           <div className="space-y-2">
             {recentPosts.map(post => (
               <div key={post.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-brioche-beige transition-colors">
-                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: post.clients?.color || '#5622d9' }} />
+                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: post.portal_clients?.color || '#5622d9' }} />
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-medium text-gray-700 truncate">{post.caption || 'Sans titre'}</div>
-                  <div className="text-xs text-gray-400">{post.platform} — {post.clients?.name}</div>
+                  <div className="text-xs text-gray-400">{post.platform} — {post.portal_clients?.name}</div>
                 </div>
                 <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLORS[post.status] || 'bg-gray-100 text-gray-600'}`}>
                   {STATUS_LABELS[post.status] || post.status}

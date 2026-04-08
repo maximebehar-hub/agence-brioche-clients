@@ -14,7 +14,7 @@ export default function StatsTab({ client }) {
 
   const loadStats = async () => {
     const { data } = await supabase
-      .from('stats')
+      .from('portal_stats')
       .select('*')
       .eq('client_id', client.id)
       .order('date', { ascending: true })
