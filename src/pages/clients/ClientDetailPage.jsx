@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { Calendar, FileText, BarChart3, FolderOpen, Pencil, ExternalLink } from 'lucide-react'
+import { Calendar, FileText, BarChart3, FolderOpen, Pencil, ExternalLink, Trash2 } from 'lucide-react'
 import clsx from 'clsx'
 import { useStore } from '../../lib/store'
 import AgendaTab from './AgendaTab'
@@ -35,6 +35,7 @@ const RS_CONFIG = [
 
 export default function ClientDetailPage() {
   const { idOrSlug } = useParams()
+  const navigate = useNavigate()
   const { perm } = useStore()
   const [client, setClient] = useState(null)
   const [activeTab, setActiveTab] = useState('agenda')
@@ -52,6 +53,12 @@ export default function ClientDetailPage() {
     }
     setClient(data)
     setLoading(false)
+  }
+
+  const handleDelete = async () => {
+    if (!confirm(`Supprimer "${client.name}" ? Le client sera déplacé dans la corbeille.`)) return
+    await supabase.from('portal_clients').update({ deleted_at: new Date().toISOString() }).eq('id', client.id)
+    navigate('/clients')
   }
 
   if (loading) return <div className="text-center py-12 text-gray-400 text-sm animate-pulse-soft">Chargement...</div>
@@ -125,12 +132,20 @@ export default function ClientDetailPage() {
               )}
             </div>
 
-            {perm('canEditClient') && (
-              <button onClick={() => setShowEdit(true)}
-                className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-[#cc0000] transition-colors shrink-0">
-                <Pencil size={18} />
-              </button>
-            )}
+            <div className="flex items-center gap-1 shrink-0">
+              {perm('canEditClient') && (
+                <button onClick={() => setShowEdit(true)}
+                  className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-[#cc0000] transition-colors" title="Modifier">
+                  <Pencil size={18} />
+                </button>
+              )}
+              {perm('canDeleteClient') && (
+                <button onClick={handleDelete}
+                  className="p-2 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-600 transition-colors" title="Supprimer">
+                  <Trash2 size={18} />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

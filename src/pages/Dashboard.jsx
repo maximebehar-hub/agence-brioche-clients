@@ -16,7 +16,7 @@ export default function Dashboard() {
 
   const loadDashboard = async () => {
     const [clientsRes, postsRes, eventsRes] = await Promise.all([
-      supabase.from('portal_clients').select('id, name, slug, color, logo_url'),
+      supabase.from('portal_clients').select('id, name, slug, color, logo_url').is('deleted_at', null),
       supabase.from('portal_posts').select('id, client_id, platform, status, caption, scheduled_at, portal_clients(name, color)').order('scheduled_at', { ascending: false }).limit(10),
       supabase.from('portal_events').select('id').gte('start_at', new Date().toISOString())
     ])

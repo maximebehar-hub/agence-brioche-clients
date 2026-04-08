@@ -24,6 +24,7 @@ export default function ClientsPage() {
     const { data } = await supabase
       .from('portal_clients')
       .select('*, portal_posts(id)')
+      .is('deleted_at', null)
       .order('name')
     setClients(data || [])
     setLoading(false)

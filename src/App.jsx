@@ -10,10 +10,18 @@ import Dashboard from './pages/Dashboard'
 import PostsPage from './pages/PostsPage'
 import ClientsPage from './pages/ClientsPage'
 import ClientDetailPage from './pages/clients/ClientDetailPage'
+import AccessPage from './pages/AccessPage'
+import TrashPage from './pages/TrashPage'
 
 function AdminOnly({ children }) {
   const { isAdmin } = useStore()
   if (!isAdmin()) return <Navigate to="/" replace />
+  return children
+}
+
+function SuperAdminOnly({ children }) {
+  const { isSuperAdmin } = useStore()
+  if (!isSuperAdmin()) return <Navigate to="/" replace />
   return children
 }
 
@@ -33,7 +41,7 @@ function App() {
               id: session.user.id,
               email: session.user.email,
               full_name: session.user.user_metadata?.full_name || session.user.email,
-              role: 'client'
+              portal_role: 'client'
             })
           }
         } catch (error) {
@@ -81,6 +89,8 @@ function App() {
                   <Route path="/posts" element={<PostsPage />} />
                   <Route path="/clients" element={<AdminOnly><ClientsPage /></AdminOnly>} />
                   <Route path="/clients/:idOrSlug" element={<ClientDetailPage />} />
+                  <Route path="/acces" element={<SuperAdminOnly><AccessPage /></SuperAdminOnly>} />
+                  <Route path="/supprimes" element={<SuperAdminOnly><TrashPage /></SuperAdminOnly>} />
                 </Routes>
               </Layout>
             ) : (

@@ -3,14 +3,14 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { signOut, supabase } from '../lib/supabase'
 import { useStore } from '../lib/store'
 import {
-  Home, FileText, Users, LogOut, Menu
+  Home, FileText, Users, LogOut, Menu, ShieldCheck, Trash2
 } from 'lucide-react'
 import clsx from 'clsx'
 
 export default function Layout({ children }) {
   const location = useLocation()
   const navigate = useNavigate()
-  const { user, clearUser, isAdmin, isClient } = useStore()
+  const { user, clearUser, isAdmin, isClient, perm } = useStore()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [clients, setClients] = useState([])
 
@@ -19,6 +19,7 @@ export default function Layout({ children }) {
     supabase
       .from('portal_clients')
       .select('id, name, slug, color')
+      .is('deleted_at', null)
       .order('name')
       .then(({ data }) => setClients(data || []))
   }, [])
@@ -97,6 +98,17 @@ export default function Layout({ children }) {
                   </Link>
                 )
               })}
+            </>
+          )}
+
+          {/* Admin */}
+          {(perm('seeAcces') || perm('seeTrash')) && (
+            <>
+              <div className="pt-4 pb-1 px-4">
+                <span className="text-[10px] font-bold tracking-widest uppercase text-white/40">Admin</span>
+              </div>
+              {perm('seeAcces') && <NavItem href="/acces" icon={ShieldCheck} label="Accès" />}
+              {perm('seeTrash') && <NavItem href="/supprimes" icon={Trash2} label="Supprimés" />}
             </>
           )}
         </nav>
