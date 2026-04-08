@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
-import { Plus, Trash2, ExternalLink, Star } from 'lucide-react'
+import { Plus, Trash2, ExternalLink, Star, X, FileText } from 'lucide-react'
 import clsx from 'clsx'
 import { getDaysInMonth } from 'date-fns'
 import { RS_ICON_MAP } from '../../components/SocialIcons'
@@ -110,6 +110,30 @@ function CategoryBadge({ value, customColor }) {
   return <span className={clsx('text-[10px] font-semibold px-2 py-1 rounded-full', fallback)}>{value}</span>
 }
 
+function WordingModal({ value, onSave, onClose }) {
+  const [text, setText] = useState(value || '')
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between p-4 border-b border-gray-100">
+          <h3 className="font-bold text-gray-900">Wording</h3>
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400"><X size={18} /></button>
+        </div>
+        <div className="p-4">
+          <textarea value={text} onChange={e => setText(e.target.value)} rows={10}
+            className="w-full px-3 py-2 bg-brioche-beige rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#cc0000] resize-none"
+            placeholder="Ecrivez le wording ici..." autoFocus />
+        </div>
+        <div className="flex justify-end gap-2 p-4 border-t border-gray-100">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 rounded-xl">Annuler</button>
+          <button onClick={() => { onSave(text); onClose() }}
+            className="px-4 py-2 text-sm font-semibold text-white bg-[#cc0000] rounded-xl hover:bg-[#aa0000]">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function PostsTab({ client }) {
   const now = new Date()
   const [view, setView] = useState('publication')
@@ -117,6 +141,7 @@ export default function PostsTab({ client }) {
   const [year, setYear] = useState(now.getFullYear())
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [wordingModal, setWordingModal] = useState(null) // { postId, value }
   const saveTimers = useRef({})
 
   const categories = client.options_categories || []
@@ -230,46 +255,46 @@ export default function PostsTab({ client }) {
         </div>
 
         <div className="overflow-x-auto bg-white">
-          <table className="w-max min-w-full border-collapse">
+          <table className="w-max min-w-full border-collapse table-fixed">
             <thead>
               <tr style={{ background: clientColor }}>
-                <th className={th + ' text-white/90'} style={{ minWidth: 100 }}>Date</th>
-                <th className={th + ' text-white/90'} style={{ minWidth: 140 }}>Sujet</th>
+                <th className={th + ' text-white/90'} style={{ width: 100 }}>Date</th>
+                <th className={th + ' text-white/90'} style={{ width: 140 }}>Sujet</th>
                 {view === 'publication' ? (
                   <>
-                    <th className={th + ' text-white/90'} style={{ minWidth: 200 }}>Wording</th>
-                    <th className={th + ' text-white/90'} style={{ minWidth: 100 }}>Catégorie</th>
-                    <th className={th + ' text-white/90'} style={{ minWidth: 80 }}>Avec</th>
-                    <th className={th + ' text-white/90'} style={{ minWidth: 90 }}>Type</th>
-                    <th className={th + ' text-white/90 text-center'} style={{ minWidth: 55 }}>RS</th>
-                    <th className={th + ' text-white/90 text-center'} style={{ minWidth: 40 }}>Sp.</th>
-                    <th className={th + ' text-white/90'} style={{ minWidth: 80 }}>Qui éd.</th>
-                    <th className={th + ' text-white/90'} style={{ minWidth: 75 }}>St. édito</th>
-                    <th className={th + ' text-white/90 text-center'} style={{ minWidth: 50 }}>Tps</th>
-                    <th className={th + ' text-white/90'} style={{ minWidth: 80 }}>Qui gr.</th>
-                    <th className={th + ' text-white/90'} style={{ minWidth: 75 }}>St. graph</th>
-                    <th className={th + ' text-white/90 text-center'} style={{ minWidth: 50 }}>Tps</th>
-                    <th className={th + ' text-white/90'} style={{ minWidth: 80 }}>Qui pub.</th>
-                    <th className={th + ' text-white/90'} style={{ minWidth: 100 }}>Statut RS</th>
-                    <th className={th + ' text-white/90'} style={{ minWidth: 60 }}>Heure</th>
-                    <th className={th + ' text-white/90 text-center'} style={{ minWidth: 45 }}>Lien</th>
-                    <th className={th + ' text-white/90'} style={{ minWidth: 30 }}></th>
+                    <th className={th + ' text-white/90'} style={{ width: 280 }}>Wording</th>
+                    <th className={th + ' text-white/90'} style={{ width: 100 }}>Catégorie</th>
+                    <th className={th + ' text-white/90'} style={{ width: 80 }}>Avec</th>
+                    <th className={th + ' text-white/90'} style={{ width: 85 }}>Type</th>
+                    <th className={th + ' text-white/90 text-center'} style={{ width: 50 }}>RS</th>
+                    <th className={th + ' text-white/90 text-center'} style={{ width: 35 }}>Sp.</th>
+                    <th className={th + ' text-white/90'} style={{ width: 80 }}>Qui éd.</th>
+                    <th className={th + ' text-white/90'} style={{ width: 75 }}>St. édito</th>
+                    <th className={th + ' text-white/90 text-center'} style={{ width: 50 }}>Tps</th>
+                    <th className={th + ' text-white/90'} style={{ width: 80 }}>Qui gr.</th>
+                    <th className={th + ' text-white/90'} style={{ width: 75 }}>St. graph</th>
+                    <th className={th + ' text-white/90 text-center'} style={{ width: 50 }}>Tps</th>
+                    <th className={th + ' text-white/90'} style={{ width: 80 }}>Qui pub.</th>
+                    <th className={th + ' text-white/90'} style={{ width: 100 }}>Statut RS</th>
+                    <th className={th + ' text-white/90'} style={{ width: 55 }}>Heure</th>
+                    <th className={th + ' text-white/90 text-center'} style={{ width: 40 }}>Lien</th>
+                    <th className={th + ' text-white/90'} style={{ width: 30 }}></th>
                   </>
                 ) : (
                   <>
-                    <th className={th + ' text-white/90 text-center'} style={{ minWidth: 55 }}>RS</th>
-                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 75 }}>Impr.</th>
-                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 75 }}>Impr. $</th>
-                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 75 }}>Couvert.</th>
-                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 65 }}>Interact.</th>
-                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 65 }}>Tx eng.</th>
-                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 55 }}>Coms</th>
-                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 55 }}>Follows</th>
-                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 55 }}>Partage</th>
-                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 65 }}>Tx part.</th>
-                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 60 }}>Dur. vid</th>
-                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 60 }}>Dur. moy</th>
-                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 60 }}>Tx vis.</th>
+                    <th className={th + ' text-white/90 text-center'} style={{ width: 50 }}>RS</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ width: 80 }}>Impr.</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ width: 80 }}>Impr. $</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ width: 80 }}>Couvert.</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ width: 70 }}>Interact.</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ width: 65 }}>Tx eng.</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ width: 55 }}>Coms</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ width: 55 }}>Follows</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ width: 55 }}>Partage</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ width: 65 }}>Tx part.</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ width: 60 }}>Dur. vid</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ width: 60 }}>Dur. moy</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ width: 60 }}>Tx vis.</th>
                   </>
                 )}
               </tr>
@@ -295,8 +320,19 @@ export default function PostsTab({ client }) {
 
                   {view === 'publication' ? (
                     <>
-                      <td className={td}><textarea value={p.wording || p.caption || ''} onChange={e => updatePost(p.id, 'wording', e.target.value)}
-                        className={input + ' resize-none text-gray-600'} rows={2} /></td>
+                      <td className={td}>
+                      {(p.wording || p.caption) ? (
+                        <button onClick={() => setWordingModal({ postId: p.id, value: p.wording || p.caption || '' })}
+                          className="w-full text-left text-[11px] text-gray-600 line-clamp-3 hover:bg-blue-50 rounded px-2 py-1 transition-colors cursor-pointer">
+                          {p.wording || p.caption}
+                        </button>
+                      ) : (
+                        <button onClick={() => setWordingModal({ postId: p.id, value: '' })}
+                          className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-[#cc0000] px-2 py-1 rounded hover:bg-gray-50 transition-colors">
+                          <FileText size={10} /> Créer un wording
+                        </button>
+                      )}
+                    </td>
                       <td className={td}>
                         <CategoryBadge value={p.categorie} customColor={colorMap.col_categorie?.[p.categorie]} />
                         <select value={p.categorie || ''} onChange={e => updatePost(p.id, 'categorie', e.target.value)}
@@ -394,6 +430,14 @@ export default function PostsTab({ client }) {
           </table>
         </div>
       </div>
+
+      {wordingModal && (
+        <WordingModal
+          value={wordingModal.value}
+          onSave={text => updatePost(wordingModal.postId, 'wording', text)}
+          onClose={() => setWordingModal(null)}
+        />
+      )}
     </div>
   )
 }
