@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import { Plus, X, Pencil, Check } from 'lucide-react'
+import { Plus, X, Pencil, Check, Save } from 'lucide-react'
 import clsx from 'clsx'
 
 const PRESET_COLORS = [
@@ -47,13 +47,12 @@ function OptionSection({ title, description, items, colorMap, onUpdate, clientId
     onUpdate(newItems)
   }
 
-  const saveColor = async (val, color) => {
+  const saveColor = (val, color) => {
     const updatedCol = { ...colorMap }
     if (color) updatedCol[val] = color
     else delete updatedCol[val]
     const updatedAll = { ...allColors, [colKey]: updatedCol }
     onColorChange?.(updatedAll)
-    await supabase.from('portal_clients').update({ options_colors: updatedAll }).eq('id', clientId)
   }
 
   const handleAdd = () => {
@@ -73,7 +72,6 @@ function OptionSection({ title, description, items, colorMap, onUpdate, clientId
       delete updatedCol[oldVal]
       const updatedAll = { ...allColors, [colKey]: updatedCol }
       onColorChange?.(updatedAll)
-      supabase.from('portal_clients').update({ options_colors: updatedAll }).eq('id', clientId)
     }
     saveList(newItems)
     setEditIdx(null)
@@ -139,6 +137,20 @@ export default function OptionsTab({ client, onClientUpdate }) {
   const [avec, setAvec] = useState(client.options_avec || [])
   const [team, setTeam] = useState(client.options_team || [])
   const [colors, setColors] = useState(client.options_colors || {})
+  const [colorsDirty, setColorsDirty] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  const handleColorChange = (newColors) => {
+    setColors(newColors)
+    setColorsDirty(true)
+  }
+
+  const saveColors = async () => {
+    setSaving(true)
+    await supabase.from('portal_clients').update({ options_colors: colors }).eq('id', client.id)
+    setColorsDirty(false)
+    setSaving(false)
+  }
 
   const saveField = async (field, value) => {
     const { error } = await supabase.from('portal_clients').update({ [field]: value }).eq('id', client.id)
@@ -160,32 +172,42 @@ export default function OptionsTab({ client, onClientUpdate }) {
       <div className="grid lg:grid-cols-2 gap-5">
         <OptionSection title="Catégories" items={categories} colKey="col_categorie"
           colorMap={colors.col_categorie || {}} clientId={client.id} allColors={colors}
-          onUpdate={val => { setCategories(val); saveField('options_categories', val) }} onColorChange={setColors} />
+          onUpdate={val => { setCategories(val); saveField('options_categories', val) }} onColorChange={handleColorChange} />
 
         <OptionSection title="Avec" description="Collaborateurs, partenaires" items={avec} colKey="col_avec"
           colorMap={colors.col_avec || {}} clientId={client.id} allColors={colors}
-          onUpdate={val => { setAvec(val); saveField('options_avec', val) }} onColorChange={setColors} />
+          onUpdate={val => { setAvec(val); saveField('options_avec', val) }} onColorChange={handleColorChange} />
 
         <OptionSection title="Équipe" description="Prénoms pour édito / graph / publi" items={team} colKey="col_team"
           colorMap={colors.col_team || {}} clientId={client.id} allColors={colors}
-          onUpdate={val => { setTeam(val); saveField('options_team', val) }} onColorChange={setColors} />
+          onUpdate={val => { setTeam(val); saveField('options_team', val) }} onColorChange={handleColorChange} />
 
         <OptionSection title="Types de contenu" items={CONTENT_TYPE_VALS} colKey="col_content_type"
           colorMap={colors.col_content_type || {}} clientId={client.id} allColors={colors}
-          onUpdate={() => {}} onColorChange={setColors} />
+          onUpdate={() => {}} onColorChange={handleColorChange} />
 
         <OptionSection title="Réseaux sociaux" items={PLATFORM_VALS} colKey="col_platform"
           colorMap={colors.col_platform || {}} clientId={client.id} allColors={colors}
-          onUpdate={() => {}} onColorChange={setColors} />
+          onUpdate={() => {}} onColorChange={handleColorChange} />
 
         <OptionSection title="Statuts édito / graph" items={STATUT_EDITO_VALS} colKey="col_statut_edito"
           colorMap={colors.col_statut_edito || {}} clientId={client.id} allColors={colors}
-          onUpdate={() => {}} onColorChange={setColors} />
+          onUpdate={() => {}} onColorChange={handleColorChange} />
 
         <OptionSection title="Statuts RS" items={STATUT_RS_VALS} colKey="col_statut_rs"
           colorMap={colors.col_statut_rs || {}} clientId={client.id} allColors={colors}
-          onUpdate={() => {}} onColorChange={setColors} />
+          onUpdate={() => {}} onColorChange={handleColorChange} />
       </div>
+
+      {colorsDirty && (
+        <div className="sticky bottom-4 flex justify-end">
+          <button onClick={saveColors} disabled={saving}
+            className="flex items-center gap-2 px-6 py-3 bg-[#cc0000] text-white font-semibold rounded-xl shadow-lg hover:bg-[#aa0000] transition-colors disabled:opacity-60">
+            <Save size={16} />
+            {saving ? 'Enregistrement...' : 'Valider les couleurs'}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
