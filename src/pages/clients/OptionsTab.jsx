@@ -135,14 +135,14 @@ function OptionSection({ title, description, items, colorMap, onUpdate, clientId
 }
 
 export default function OptionsTab({ client, onClientUpdate }) {
-  const categories = client.options_categories || []
-  const avec = client.options_avec || []
-  const team = client.options_team || []
+  const [categories, setCategories] = useState(client.options_categories || [])
+  const [avec, setAvec] = useState(client.options_avec || [])
+  const [team, setTeam] = useState(client.options_team || [])
   const [colors, setColors] = useState(client.options_colors || {})
 
-  const save = async (field, value) => {
-    await supabase.from('portal_clients').update({ [field]: value }).eq('id', client.id)
-    onClientUpdate?.()
+  const saveField = async (field, value) => {
+    const { error } = await supabase.from('portal_clients').update({ [field]: value }).eq('id', client.id)
+    if (error) console.error('Save error:', error)
   }
 
   const STATUT_EDITO_VALS = ['Fait', 'A MàJ', 'En attente', 'A faire', 'Pas besoin']
@@ -160,15 +160,15 @@ export default function OptionsTab({ client, onClientUpdate }) {
       <div className="grid lg:grid-cols-2 gap-5">
         <OptionSection title="Catégories" items={categories} colKey="col_categorie"
           colorMap={colors.col_categorie || {}} clientId={client.id} allColors={colors}
-          onUpdate={val => save('options_categories', val)} onColorChange={setColors} />
+          onUpdate={val => { setCategories(val); saveField('options_categories', val) }} onColorChange={setColors} />
 
         <OptionSection title="Avec" description="Collaborateurs, partenaires" items={avec} colKey="col_avec"
           colorMap={colors.col_avec || {}} clientId={client.id} allColors={colors}
-          onUpdate={val => save('options_avec', val)} onColorChange={setColors} />
+          onUpdate={val => { setAvec(val); saveField('options_avec', val) }} onColorChange={setColors} />
 
         <OptionSection title="Équipe" description="Prénoms pour édito / graph / publi" items={team} colKey="col_team"
           colorMap={colors.col_team || {}} clientId={client.id} allColors={colors}
-          onUpdate={val => save('options_team', val)} onColorChange={setColors} />
+          onUpdate={val => { setTeam(val); saveField('options_team', val) }} onColorChange={setColors} />
 
         <OptionSection title="Types de contenu" items={CONTENT_TYPE_VALS} colKey="col_content_type"
           colorMap={colors.col_content_type || {}} clientId={client.id} allColors={colors}
