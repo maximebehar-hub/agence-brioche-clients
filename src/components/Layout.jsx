@@ -44,9 +44,9 @@ export default function Layout({ children }) {
       <Link to={href} onClick={() => setSidebarOpen(false)}
         className={clsx(
           'flex items-center gap-3 px-4 py-2 rounded-xl text-[13px] font-medium transition-all duration-150',
-          active ? 'bg-white/60 text-brioche-violet font-semibold shadow-sm' : 'text-amber-900/80 hover:bg-white/40 hover:text-brioche-violet'
+          active ? 'bg-white/20 text-white font-semibold shadow-sm' : 'text-white/70 hover:bg-white/10 hover:text-white'
         )}>
-        <Icon size={18} className={clsx(active ? 'opacity-100' : 'opacity-50')} />
+        <Icon size={18} className={clsx(active ? 'opacity-100' : 'opacity-60')} />
         {label}
       </Link>
     )
@@ -66,11 +66,11 @@ export default function Layout({ children }) {
       )}
 
       <aside className={clsx(
-        'fixed top-0 left-0 bottom-0 w-[220px] bg-brioche-yellow flex flex-col z-50 transition-transform duration-250',
+        'fixed top-0 left-0 bottom-0 w-[220px] bg-[#cc0000] flex flex-col z-50 transition-transform duration-250',
         'lg:translate-x-0', sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       )}>
         <div className="px-4 py-4 flex items-center justify-center min-h-[64px]">
-          <span className="text-2xl font-black italic text-brioche-violet tracking-tight">BRIOCHE</span>
+          <span className="text-2xl font-black italic text-white tracking-tight">BRIOCHE</span>
         </div>
 
         <nav className="flex-1 px-3 py-1 space-y-0.5 overflow-y-auto">
@@ -82,7 +82,7 @@ export default function Layout({ children }) {
           {isAdmin() && clients.length > 0 && (
             <>
               <div className="pt-4 pb-1 px-4">
-                <span className="text-[10px] font-bold tracking-widest uppercase text-brioche-violet/40">Clients</span>
+                <span className="text-[10px] font-bold tracking-widest uppercase text-white/40">Clients</span>
               </div>
               {clients.map(cl => {
                 const active = location.pathname.includes(`/clients/${cl.slug || cl.id}`)
@@ -90,7 +90,7 @@ export default function Layout({ children }) {
                   <Link key={cl.id} to={`/clients/${cl.slug || cl.id}`} onClick={() => setSidebarOpen(false)}
                     className={clsx(
                       'flex items-center gap-3 px-4 py-2 rounded-xl text-[13px] font-medium transition-all duration-150',
-                      active ? 'bg-white/60 text-brioche-violet font-semibold shadow-sm' : 'text-amber-900/80 hover:bg-white/40 hover:text-brioche-violet'
+                      active ? 'bg-white/20 text-white font-semibold shadow-sm' : 'text-white/70 hover:bg-white/10 hover:text-white'
                     )}>
                     <div className="w-2 h-2 rounded-full shrink-0" style={{ background: cl.color || '#5622d9' }} />
                     {cl.name}
@@ -101,16 +101,16 @@ export default function Layout({ children }) {
           )}
         </nav>
 
-        <div className="px-3 pb-4 pt-2 border-t border-white/40">
-          <div className="flex items-center gap-3 px-3 py-2.5 bg-white/40 rounded-xl">
-            <div className="w-8 h-8 rounded-full bg-brioche-violet flex items-center justify-center text-white text-[11px] font-bold shrink-0">
+        <div className="px-3 pb-4 pt-2 border-t border-white/20">
+          <div className="flex items-center gap-3 px-3 py-2.5 bg-white/15 rounded-xl">
+            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[#cc0000] text-[11px] font-bold shrink-0">
               {initials}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-xs font-bold text-amber-900 truncate">{user?.full_name || user?.email}</div>
-              <div className="text-[10px] text-amber-900/50 font-semibold uppercase tracking-wider">{roleLabel}</div>
+              <div className="text-xs font-bold text-white truncate">{user?.full_name || user?.email}</div>
+              <div className="text-[10px] text-white/50 font-semibold uppercase tracking-wider">{roleLabel}</div>
             </div>
-            <button onClick={handleLogout} className="p-1.5 rounded-lg hover:bg-white/50 text-amber-900/40 hover:text-red-600 transition-colors" title="Se déconnecter">
+            <button onClick={handleLogout} className="p-1.5 rounded-lg hover:bg-white/20 text-white/40 hover:text-white transition-colors" title="Se déconnecter">
               <LogOut size={16} />
             </button>
           </div>
