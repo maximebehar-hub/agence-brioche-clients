@@ -7,31 +7,49 @@ import { RS_ICON_MAP } from '../../components/SocialIcons'
 
 const CONTENT_TYPES = ['Visuel', 'Carrousel', 'Vidéo', 'Story', 'Article', 'Newsletter']
 const RS_OPTIONS = [
-  { value: 'Instagram', label: 'IG' },
-  { value: 'TikTok', label: 'TK' },
-  { value: 'Facebook', label: 'FB' },
-  { value: 'YouTube', label: 'YT' },
-  { value: 'LinkedIn', label: 'IN' },
-  { value: 'X', label: '𝕏' },
-  { value: 'Strava', label: 'ST' },
-  { value: 'Story Insta', label: 'SI' }
+  { value: 'Instagram', label: 'IG', color: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' },
+  { value: 'TikTok', label: 'TK', color: 'bg-black text-white' },
+  { value: 'Facebook', label: 'FB', color: 'bg-blue-600 text-white' },
+  { value: 'YouTube', label: 'YT', color: 'bg-red-600 text-white' },
+  { value: 'LinkedIn', label: 'IN', color: 'bg-blue-700 text-white' },
+  { value: 'X', label: '𝕏', color: 'bg-gray-900 text-white' },
+  { value: 'Strava', label: 'ST', color: 'bg-orange-500 text-white' },
+  { value: 'Story Insta', label: 'SI', color: 'bg-gradient-to-r from-yellow-400 to-pink-500 text-white' }
 ]
-const STATUT_EDITO = ['Fait', 'A MàJ', 'En attente', 'A faire', 'Pas besoin']
-const STATUT_RS = ['Publié', 'Programmé', 'Prêt à être publié', 'En préparation', 'En attente de validation', 'Elements manquants', 'Si résultat']
+const STATUT_EDITO_OPTIONS = [
+  { value: 'Fait', color: 'bg-green-100 text-green-800' },
+  { value: 'A MàJ', color: 'bg-amber-100 text-amber-800' },
+  { value: 'En attente', color: 'bg-yellow-100 text-yellow-800' },
+  { value: 'A faire', color: 'bg-red-100 text-red-800' },
+  { value: 'Pas besoin', color: 'bg-gray-100 text-gray-500' }
+]
+const STATUT_RS_OPTIONS = [
+  { value: 'Publié', color: 'bg-green-600 text-white' },
+  { value: 'Programmé', color: 'bg-blue-600 text-white' },
+  { value: 'Prêt à être publié', color: 'bg-emerald-100 text-emerald-800' },
+  { value: 'En préparation', color: 'bg-amber-100 text-amber-800' },
+  { value: 'En attente de validation', color: 'bg-orange-100 text-orange-800' },
+  { value: 'Elements manquants', color: 'bg-red-100 text-red-800' },
+  { value: 'Si résultat', color: 'bg-purple-100 text-purple-800' }
+]
 const MONTHS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
 
-const thCls = "sticky top-0 bg-gray-50 text-[9px] font-semibold uppercase tracking-wider text-gray-400 px-2 py-2 border-b border-r border-gray-200 whitespace-nowrap z-10"
-const tdCls = "px-1 py-1 border-b border-r border-gray-100 text-[11px]"
-const inputCls = "w-full px-1.5 py-1 bg-transparent text-[11px] focus:outline-none focus:bg-blue-50 rounded"
-const selectCls = "w-full px-1 py-1 bg-transparent text-[11px] focus:outline-none focus:bg-blue-50 rounded appearance-none"
+const CATEGORY_COLORS = {
+  'Clubs WLC': 'bg-green-100 text-green-800',
+  'Pédagogique': 'bg-blue-100 text-blue-800',
+  'Meme': 'bg-yellow-100 text-yellow-800',
+  'Sport': 'bg-orange-100 text-orange-800',
+  'Partenaires': 'bg-purple-100 text-purple-800',
+  'Pratique': 'bg-cyan-100 text-cyan-800',
+}
 
 function Stars({ value, onChange }) {
   return (
-    <div className="flex gap-0.5">
+    <div className="flex gap-0.5 justify-center">
       {[1, 2, 3].map(i => (
         <button key={i} type="button" onClick={() => onChange(value === i ? 0 : i)}
           className={`p-0 ${i <= (value || 0) ? 'text-amber-400' : 'text-gray-300'}`}>
-          <Star size={10} fill={i <= (value || 0) ? 'currentColor' : 'none'} />
+          <Star size={11} fill={i <= (value || 0) ? 'currentColor' : 'none'} />
         </button>
       ))}
     </div>
@@ -41,6 +59,27 @@ function Stars({ value, onChange }) {
 function pct(a, b) {
   if (!a || !b) return '—'
   return (a / b * 100).toFixed(2) + '%'
+}
+
+function RsBadge({ platform, size = 16 }) {
+  const opt = RS_OPTIONS.find(r => r.value === platform)
+  const Icon = RS_ICON_MAP[platform]
+  if (!Icon) return <span className="text-[10px] text-gray-400">—</span>
+  return (
+    <div className={clsx('inline-flex items-center justify-center w-7 h-7 rounded-lg', opt?.color || 'bg-gray-200')}>
+      <Icon size={size} className="text-white" />
+    </div>
+  )
+}
+
+function StatutBadge({ value, options }) {
+  const opt = options.find(o => o.value === value)
+  if (!value) return <span className="text-gray-300 text-[10px]">—</span>
+  return (
+    <span className={clsx('text-[9px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap', opt?.color || 'bg-gray-100 text-gray-600')}>
+      {value}
+    </span>
+  )
 }
 
 export default function PostsTab({ client }) {
@@ -72,13 +111,9 @@ export default function PostsTab({ client }) {
     const endMonth = month === 11 ? 0 : month + 1
     const endYear = month === 11 ? year + 1 : year
     const end = `${endYear}-${String(endMonth + 1).padStart(2, '0')}-01T00:00:00`
-
     const { data } = await supabase
-      .from('portal_posts')
-      .select('*')
-      .eq('client_id', client.id)
-      .gte('scheduled_at', start)
-      .lt('scheduled_at', end)
+      .from('portal_posts').select('*').eq('client_id', client.id)
+      .gte('scheduled_at', start).lt('scheduled_at', end)
       .order('scheduled_at', { ascending: true })
     setPosts(data || [])
     setLoading(false)
@@ -96,8 +131,7 @@ export default function PostsTab({ client }) {
     const defaultDate = `${year}-${String(month + 1).padStart(2, '0')}-01T12:00:00+01:00`
     const { data } = await supabase.from('portal_posts')
       .insert({ client_id: client.id, platform: 'Instagram', status: 'brouillon', scheduled_at: defaultDate })
-      .select()
-      .single()
+      .select().single()
     if (data) setPosts(prev => [...prev, data])
   }
 
@@ -106,299 +140,234 @@ export default function PostsTab({ client }) {
     setPosts(prev => prev.filter(p => p.id !== id))
   }
 
-  const getDateValue = (post) => {
-    if (!post.scheduled_at) return ''
-    return post.scheduled_at.slice(0, 10)
+  const getDateValue = (p) => p.scheduled_at?.slice(0, 10) || ''
+  const getDateLabel = (p) => {
+    if (!p.scheduled_at) return '—'
+    const d = new Date(p.scheduled_at)
+    return d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })
   }
 
   const setDate = (post, dateStr) => {
     const hour = post.heure_publi || '12:00'
-    const scheduled_at = `${dateStr}T${hour}:00+01:00`
-    updatePost(post.id, 'scheduled_at', scheduled_at)
+    updatePost(post.id, 'scheduled_at', `${dateStr}T${hour}:00+01:00`)
   }
 
-  const RsIcon = ({ platform, size = 14 }) => {
-    const Icon = RS_ICON_MAP[platform]
-    if (!Icon) return <span className="text-[10px] text-gray-400">—</span>
-    return <Icon size={size} className="text-gray-600" />
-  }
+  const clientColor = client.color || '#cc0000'
+
+  // Shared cell styles
+  const th = "text-[10px] font-bold uppercase tracking-wide px-3 py-2.5 border-b-2 border-white/20 whitespace-nowrap text-left"
+  const td = "px-2 py-2 border-b border-gray-100 text-[11px] align-top"
+  const input = "w-full px-2 py-1 bg-transparent text-[11px] focus:outline-none focus:bg-white focus:shadow-sm rounded border border-transparent hover:border-gray-200 focus:border-blue-300 transition-colors"
+  const sel = "w-full px-1.5 py-1 bg-transparent text-[11px] focus:outline-none focus:bg-white rounded border border-transparent hover:border-gray-200 focus:border-blue-300 transition-colors"
 
   return (
     <div className="space-y-3">
-      {/* Header: view switch + month/year + add */}
+      {/* Toolbar */}
       <div className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3 flex-wrap">
-        {/* View toggle */}
-        <div className="flex bg-brioche-beige rounded-xl p-0.5">
-          <button onClick={() => setView('publication')}
-            className={clsx('px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors',
-              view === 'publication' ? 'bg-[#cc0000] text-white shadow-sm' : 'text-gray-500 hover:text-gray-700')}>
-            Publications
-          </button>
-          <button onClick={() => setView('stats')}
-            className={clsx('px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors',
-              view === 'stats' ? 'bg-[#cc0000] text-white shadow-sm' : 'text-gray-500 hover:text-gray-700')}>
-            Stats
-          </button>
+        <div className="flex bg-gray-100 rounded-xl p-0.5">
+          {['publication', 'stats'].map(v => (
+            <button key={v} onClick={() => setView(v)}
+              className={clsx('px-4 py-1.5 rounded-lg text-xs font-semibold transition-all',
+                view === v ? 'text-white shadow-sm' : 'text-gray-500 hover:text-gray-700')}
+              style={view === v ? { background: clientColor } : {}}>
+              {v === 'publication' ? 'Publications' : 'Stats'}
+            </button>
+          ))}
         </div>
-
         <select value={month} onChange={e => setMonth(+e.target.value)}
-          className="px-3 py-1.5 bg-brioche-beige rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#cc0000]">
+          className="px-3 py-1.5 bg-gray-100 rounded-xl text-sm font-semibold focus:outline-none">
           {MONTHS.map((m, i) => <option key={i} value={i}>{m}</option>)}
         </select>
         <select value={year} onChange={e => setYear(+e.target.value)}
-          className="px-3 py-1.5 bg-brioche-beige rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#cc0000]">
+          className="px-3 py-1.5 bg-gray-100 rounded-xl text-sm font-semibold focus:outline-none">
           {[2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
         </select>
         <span className="text-xs text-gray-400">{posts.length} pub{posts.length > 1 ? 's' : ''}</span>
         <div className="flex-1" />
         {view === 'publication' && (
           <button onClick={addRow}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#cc0000] text-white text-xs font-semibold rounded-xl hover:bg-[#aa0000] transition-colors">
+            className="flex items-center gap-1.5 px-4 py-1.5 text-white text-xs font-semibold rounded-xl hover:opacity-90 transition-opacity"
+            style={{ background: clientColor }}>
             <Plus size={14} /> Ajouter
           </button>
         )}
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
-        <table className="w-max min-w-full border-collapse">
-          <thead>
-            <tr>
-              {/* Colonnes communes */}
-              <th className={thCls} style={{ minWidth: 90 }}>Date</th>
-              <th className={thCls} style={{ minWidth: 120 }}>Sujet</th>
+      <div className="rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        {/* Title banner */}
+        <div className="text-center py-2 text-white font-bold text-sm tracking-wider uppercase" style={{ background: clientColor }}>
+          {view === 'publication' ? 'Publications' : 'Stats par publication'}
+        </div>
 
-              {view === 'publication' ? (
-                <>
-                  <th className={thCls} style={{ minWidth: 160 }}>Wording</th>
-                  <th className={thCls} style={{ minWidth: 90 }}>Catégorie</th>
-                  <th className={thCls} style={{ minWidth: 80 }}>Avec</th>
-                  <th className={thCls} style={{ minWidth: 80 }}>Type</th>
-                  <th className={thCls} style={{ minWidth: 50 }}>RS</th>
-                  <th className={thCls} style={{ minWidth: 30 }}>Sp.</th>
-                  <th className={thCls} style={{ minWidth: 70 }}>Qui éd.</th>
-                  <th className={thCls} style={{ minWidth: 70 }}>St. éd.</th>
-                  <th className={thCls} style={{ minWidth: 45 }}>T.éd</th>
-                  <th className={thCls} style={{ minWidth: 70 }}>Qui gr.</th>
-                  <th className={thCls} style={{ minWidth: 70 }}>St. gr.</th>
-                  <th className={thCls} style={{ minWidth: 45 }}>T.gr</th>
-                  <th className={thCls} style={{ minWidth: 70 }}>Qui pub.</th>
-                  <th className={thCls} style={{ minWidth: 90 }}>Statut RS</th>
-                  <th className={thCls} style={{ minWidth: 55 }}>Heure</th>
-                  <th className={thCls} style={{ minWidth: 40 }}>Lien</th>
-                  <th className={thCls} style={{ minWidth: 30 }}></th>
-                </>
-              ) : (
-                <>
-                  <th className={thCls} style={{ minWidth: 50 }}>RS</th>
-                  <th className={thCls} style={{ minWidth: 65 }}>Impr.</th>
-                  <th className={thCls} style={{ minWidth: 65 }}>Impr. $</th>
-                  <th className={thCls} style={{ minWidth: 65 }}>Couv.</th>
-                  <th className={thCls} style={{ minWidth: 55 }}>Inter.</th>
-                  <th className={thCls} style={{ minWidth: 55 }}>Tx eng.</th>
-                  <th className={thCls} style={{ minWidth: 50 }}>Coms</th>
-                  <th className={thCls} style={{ minWidth: 50 }}>Foll.</th>
-                  <th className={thCls} style={{ minWidth: 50 }}>Part.</th>
-                  <th className={thCls} style={{ minWidth: 55 }}>Tx part.</th>
-                  <th className={thCls} style={{ minWidth: 55 }}>Dur. vid</th>
-                  <th className={thCls} style={{ minWidth: 55 }}>Dur. moy</th>
-                  <th className={thCls} style={{ minWidth: 55 }}>Tx vis.</th>
-                </>
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan={20} className="text-center py-12 text-gray-400 text-[11px]">Chargement...</td></tr>
-            ) : posts.length === 0 ? (
-              <tr><td colSpan={20} className="text-center py-12 text-gray-400 text-[11px]">Aucun post ce mois</td></tr>
-            ) : posts.map(p => (
-              <tr key={p.id} className="hover:bg-blue-50/30">
-                {/* Colonnes communes: Date + Sujet */}
-                <td className={tdCls}>
-                  <select value={getDateValue(p)} onChange={e => setDate(p, e.target.value)} className={selectCls}>
-                    <option value="">—</option>
-                    {dayOptions.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-                  </select>
-                </td>
-                <td className={tdCls}>
-                  <input value={p.sujet || ''} onChange={e => updatePost(p.id, 'sujet', e.target.value)} className={inputCls} />
-                </td>
-
+        <div className="overflow-x-auto bg-white">
+          <table className="w-max min-w-full border-collapse">
+            <thead>
+              <tr style={{ background: clientColor }}>
+                <th className={th + ' text-white/90'} style={{ minWidth: 100 }}>Date</th>
+                <th className={th + ' text-white/90'} style={{ minWidth: 140 }}>Sujet</th>
                 {view === 'publication' ? (
                   <>
-                    {/* Wording */}
-                    <td className={tdCls}>
-                      <textarea value={p.wording || p.caption || ''} onChange={e => updatePost(p.id, 'wording', e.target.value)}
-                        className={inputCls + ' resize-none'} rows={1} />
-                    </td>
-                    {/* Catégorie */}
-                    <td className={tdCls}>
-                      <select value={p.categorie || ''} onChange={e => updatePost(p.id, 'categorie', e.target.value)} className={selectCls}>
-                        <option value="">—</option>
-                        {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                    </td>
-                    {/* Avec */}
-                    <td className={tdCls}>
-                      <select value={p.avec || ''} onChange={e => updatePost(p.id, 'avec', e.target.value)} className={selectCls}>
-                        <option value="">—</option>
-                        {avecOptions.map(a => <option key={a} value={a}>{a}</option>)}
-                      </select>
-                    </td>
-                    {/* Type */}
-                    <td className={tdCls}>
-                      <select value={p.content_type || ''} onChange={e => updatePost(p.id, 'content_type', e.target.value)} className={selectCls}>
-                        <option value="">—</option>
-                        {CONTENT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                    </td>
-                    {/* RS */}
-                    <td className={tdCls}>
-                      <div className="flex items-center gap-1">
-                        <RsIcon platform={p.platform} size={12} />
-                        <select value={p.platform || ''} onChange={e => updatePost(p.id, 'platform', e.target.value)} className={selectCls + ' flex-1'}>
-                          <option value="">—</option>
-                          {RS_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
-                        </select>
-                      </div>
-                    </td>
-                    {/* Sponso */}
-                    <td className={tdCls + ' text-center'}>
-                      <input type="checkbox" checked={p.sponso || false} onChange={e => updatePost(p.id, 'sponso', e.target.checked)}
-                        className="w-3.5 h-3.5 accent-[#cc0000]" />
-                    </td>
-                    {/* Qui édito */}
-                    <td className={tdCls}>
-                      <select value={p.qui_edito || ''} onChange={e => updatePost(p.id, 'qui_edito', e.target.value)} className={selectCls}>
-                        <option value="">—</option>
-                        {team.map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                    </td>
-                    {/* Statut édito */}
-                    <td className={tdCls}>
-                      <select value={p.statut_edito || ''} onChange={e => updatePost(p.id, 'statut_edito', e.target.value)} className={selectCls}>
-                        <option value="">—</option>
-                        {STATUT_EDITO.map(s => <option key={s} value={s}>{s}</option>)}
-                      </select>
-                    </td>
-                    {/* Temps édito */}
-                    <td className={tdCls}><Stars value={p.temps_edito} onChange={v => updatePost(p.id, 'temps_edito', v)} /></td>
-                    {/* Qui graph */}
-                    <td className={tdCls}>
-                      <select value={p.qui_graph || ''} onChange={e => updatePost(p.id, 'qui_graph', e.target.value)} className={selectCls}>
-                        <option value="">—</option>
-                        {team.map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                    </td>
-                    {/* Statut graph */}
-                    <td className={tdCls}>
-                      <select value={p.statut_graph || ''} onChange={e => updatePost(p.id, 'statut_graph', e.target.value)} className={selectCls}>
-                        <option value="">—</option>
-                        {STATUT_EDITO.map(s => <option key={s} value={s}>{s}</option>)}
-                      </select>
-                    </td>
-                    {/* Temps graph */}
-                    <td className={tdCls}><Stars value={p.temps_graph} onChange={v => updatePost(p.id, 'temps_graph', v)} /></td>
-                    {/* Qui publi */}
-                    <td className={tdCls}>
-                      <select value={p.qui_publi || ''} onChange={e => updatePost(p.id, 'qui_publi', e.target.value)} className={selectCls}>
-                        <option value="">—</option>
-                        {team.map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                    </td>
-                    {/* Statut RS */}
-                    <td className={tdCls}>
-                      <select value={p.statut_rs || ''} onChange={e => updatePost(p.id, 'statut_rs', e.target.value)} className={selectCls}>
-                        <option value="">—</option>
-                        {STATUT_RS.map(s => <option key={s} value={s}>{s}</option>)}
-                      </select>
-                    </td>
-                    {/* Heure */}
-                    <td className={tdCls}>
-                      <input type="time" value={p.heure_publi || ''} onChange={e => updatePost(p.id, 'heure_publi', e.target.value)}
-                        className={inputCls} />
-                    </td>
-                    {/* Lien */}
-                    <td className={tdCls + ' text-center'}>
-                      {(p.lien_publi || p.visual_url) ? (
-                        <a href={p.lien_publi || p.visual_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">
-                          <ExternalLink size={12} />
-                        </a>
-                      ) : '—'}
-                    </td>
-                    {/* Delete */}
-                    <td className={tdCls + ' text-center'}>
-                      <button onClick={() => deleteRow(p.id)} className="text-gray-300 hover:text-red-500 transition-colors">
-                        <Trash2 size={11} />
-                      </button>
-                    </td>
+                    <th className={th + ' text-white/90'} style={{ minWidth: 200 }}>Wording</th>
+                    <th className={th + ' text-white/90'} style={{ minWidth: 100 }}>Catégorie</th>
+                    <th className={th + ' text-white/90'} style={{ minWidth: 80 }}>Avec</th>
+                    <th className={th + ' text-white/90'} style={{ minWidth: 90 }}>Type</th>
+                    <th className={th + ' text-white/90 text-center'} style={{ minWidth: 55 }}>RS</th>
+                    <th className={th + ' text-white/90 text-center'} style={{ minWidth: 40 }}>Sp.</th>
+                    <th className={th + ' text-white/90'} style={{ minWidth: 80 }}>Qui éd.</th>
+                    <th className={th + ' text-white/90'} style={{ minWidth: 75 }}>St. édito</th>
+                    <th className={th + ' text-white/90 text-center'} style={{ minWidth: 50 }}>Tps</th>
+                    <th className={th + ' text-white/90'} style={{ minWidth: 80 }}>Qui gr.</th>
+                    <th className={th + ' text-white/90'} style={{ minWidth: 75 }}>St. graph</th>
+                    <th className={th + ' text-white/90 text-center'} style={{ minWidth: 50 }}>Tps</th>
+                    <th className={th + ' text-white/90'} style={{ minWidth: 80 }}>Qui pub.</th>
+                    <th className={th + ' text-white/90'} style={{ minWidth: 100 }}>Statut RS</th>
+                    <th className={th + ' text-white/90'} style={{ minWidth: 60 }}>Heure</th>
+                    <th className={th + ' text-white/90 text-center'} style={{ minWidth: 45 }}>Lien</th>
+                    <th className={th + ' text-white/90'} style={{ minWidth: 30 }}></th>
                   </>
                 ) : (
                   <>
-                    {/* RS (icon) */}
-                    <td className={tdCls + ' text-center'}>
-                      <div className="flex items-center justify-center"><RsIcon platform={p.platform} size={14} /></div>
-                    </td>
-                    {/* Impressions */}
-                    <td className={tdCls}>
-                      <input type="number" value={p.impressions ?? ''} onChange={e => updatePost(p.id, 'impressions', +e.target.value || null)}
-                        className={inputCls + ' text-right'} />
-                    </td>
-                    {/* Impressions payées */}
-                    <td className={tdCls} style={{ opacity: p.sponso ? 1 : 0.3 }}>
-                      <input type="number" value={p.impressions_payees ?? ''} onChange={e => updatePost(p.id, 'impressions_payees', +e.target.value || null)}
-                        className={inputCls + ' text-right'} disabled={!p.sponso} />
-                    </td>
-                    {/* Couverture */}
-                    <td className={tdCls}>
-                      <input type="number" value={p.couverture ?? ''} onChange={e => updatePost(p.id, 'couverture', +e.target.value || null)}
-                        className={inputCls + ' text-right'} />
-                    </td>
-                    {/* Interactions */}
-                    <td className={tdCls}>
-                      <input type="number" value={p.interactions ?? ''} onChange={e => updatePost(p.id, 'interactions', +e.target.value || null)}
-                        className={inputCls + ' text-right'} />
-                    </td>
-                    {/* Taux engagement */}
-                    <td className={tdCls + ' text-right text-[10px] text-gray-500 bg-gray-50/50'}>{pct(p.interactions, p.couverture)}</td>
-                    {/* Coms */}
-                    <td className={tdCls}>
-                      <input type="number" value={p.coms ?? ''} onChange={e => updatePost(p.id, 'coms', +e.target.value || null)}
-                        className={inputCls + ' text-right'} />
-                    </td>
-                    {/* Follows */}
-                    <td className={tdCls}>
-                      <input type="number" value={p.follows ?? ''} onChange={e => updatePost(p.id, 'follows', +e.target.value || null)}
-                        className={inputCls + ' text-right'} />
-                    </td>
-                    {/* Partage */}
-                    <td className={tdCls}>
-                      <input type="number" value={p.partage ?? ''} onChange={e => updatePost(p.id, 'partage', +e.target.value || null)}
-                        className={inputCls + ' text-right'} />
-                    </td>
-                    {/* Taux partage */}
-                    <td className={tdCls + ' text-right text-[10px] text-gray-500 bg-gray-50/50'}>{pct(p.partage, p.couverture)}</td>
-                    {/* Durée vidéo */}
-                    <td className={tdCls} style={{ opacity: p.content_type === 'Vidéo' ? 1 : 0.2 }}>
-                      <input type="number" value={p.duree_video ?? ''} onChange={e => updatePost(p.id, 'duree_video', +e.target.value || null)}
-                        className={inputCls + ' text-right'} disabled={p.content_type !== 'Vidéo'} step="0.1" />
-                    </td>
-                    {/* Durée moyenne */}
-                    <td className={tdCls} style={{ opacity: p.content_type === 'Vidéo' ? 1 : 0.2 }}>
-                      <input type="number" value={p.duree_moyenne ?? ''} onChange={e => updatePost(p.id, 'duree_moyenne', +e.target.value || null)}
-                        className={inputCls + ' text-right'} disabled={p.content_type !== 'Vidéo'} step="0.1" />
-                    </td>
-                    {/* Taux visionnage */}
-                    <td className={tdCls + ' text-right text-[10px] text-gray-500 bg-gray-50/50'} style={{ opacity: p.content_type === 'Vidéo' ? 1 : 0.2 }}>
-                      {p.content_type === 'Vidéo' ? pct(p.duree_moyenne, p.duree_video) : '—'}
-                    </td>
+                    <th className={th + ' text-white/90 text-center'} style={{ minWidth: 55 }}>RS</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 75 }}>Impr.</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 75 }}>Impr. $</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 75 }}>Couvert.</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 65 }}>Interact.</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 65 }}>Tx eng.</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 55 }}>Coms</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 55 }}>Follows</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 55 }}>Partage</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 65 }}>Tx part.</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 60 }}>Dur. vid</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 60 }}>Dur. moy</th>
+                    <th className={th + ' text-white/90 text-right'} style={{ minWidth: 60 }}>Tx vis.</th>
                   </>
                 )}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={20} className="text-center py-16 text-gray-400 text-sm">Chargement...</td></tr>
+              ) : posts.length === 0 ? (
+                <tr><td colSpan={20} className="text-center py-16 text-gray-400 text-sm">Aucun post ce mois</td></tr>
+              ) : posts.map((p, idx) => (
+                <tr key={p.id} className={clsx('group transition-colors', idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60', 'hover:bg-blue-50/40')}>
+                  {/* Date */}
+                  <td className={td + ' font-medium text-gray-700'}>
+                    <select value={getDateValue(p)} onChange={e => setDate(p, e.target.value)} className={sel + ' font-medium'}>
+                      <option value="">—</option>
+                      {dayOptions.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+                    </select>
+                  </td>
+                  {/* Sujet */}
+                  <td className={td + ' font-semibold text-gray-800'}>
+                    <input value={p.sujet || ''} onChange={e => updatePost(p.id, 'sujet', e.target.value)} className={input + ' font-semibold'} />
+                  </td>
+
+                  {view === 'publication' ? (
+                    <>
+                      <td className={td}><textarea value={p.wording || p.caption || ''} onChange={e => updatePost(p.id, 'wording', e.target.value)}
+                        className={input + ' resize-none text-gray-600'} rows={2} /></td>
+                      <td className={td}>
+                        {p.categorie ? (
+                          <span className={clsx('text-[10px] font-semibold px-2 py-1 rounded-full', CATEGORY_COLORS[p.categorie] || 'bg-gray-100 text-gray-700')}>
+                            {p.categorie}
+                          </span>
+                        ) : null}
+                        <select value={p.categorie || ''} onChange={e => updatePost(p.id, 'categorie', e.target.value)}
+                          className={sel + ' mt-0.5'} style={{ opacity: p.categorie ? 0.4 : 1 }}>
+                          <option value="">—</option>
+                          {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </td>
+                      <td className={td}><select value={p.avec || ''} onChange={e => updatePost(p.id, 'avec', e.target.value)} className={sel}>
+                        <option value="">—</option>{avecOptions.map(a => <option key={a} value={a}>{a}</option>)}</select></td>
+                      <td className={td}><select value={p.content_type || ''} onChange={e => updatePost(p.id, 'content_type', e.target.value)} className={sel}>
+                        <option value="">—</option>{CONTENT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select></td>
+                      <td className={td + ' text-center'}>
+                        <div className="flex flex-col items-center gap-1">
+                          <RsBadge platform={p.platform} size={14} />
+                          <select value={p.platform || ''} onChange={e => updatePost(p.id, 'platform', e.target.value)}
+                            className="text-[9px] bg-transparent focus:outline-none w-full text-center text-gray-400">
+                            <option value="">—</option>
+                            {RS_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                          </select>
+                        </div>
+                      </td>
+                      <td className={td + ' text-center align-middle'}>
+                        <input type="checkbox" checked={p.sponso || false} onChange={e => updatePost(p.id, 'sponso', e.target.checked)}
+                          className="w-4 h-4 accent-orange-500 rounded" />
+                        {p.sponso && <div className="text-[8px] font-bold text-orange-600 mt-0.5">Sponso</div>}
+                      </td>
+                      <td className={td}>
+                        {p.qui_edito && <div className="text-[10px] font-semibold text-blue-700 bg-blue-100 rounded-full px-2 py-0.5 text-center mb-0.5">{p.qui_edito}</div>}
+                        <select value={p.qui_edito || ''} onChange={e => updatePost(p.id, 'qui_edito', e.target.value)}
+                          className={sel} style={{ opacity: p.qui_edito ? 0.3 : 1 }}>
+                          <option value="">—</option>{team.map(t => <option key={t} value={t}>{t}</option>)}</select>
+                      </td>
+                      <td className={td + ' text-center'}><StatutBadge value={p.statut_edito} options={STATUT_EDITO_OPTIONS} />
+                        <select value={p.statut_edito || ''} onChange={e => updatePost(p.id, 'statut_edito', e.target.value)}
+                          className={sel + ' mt-0.5'} style={{ opacity: 0.3 }}>
+                          <option value="">—</option>{STATUT_EDITO_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.value}</option>)}</select></td>
+                      <td className={td}><Stars value={p.temps_edito} onChange={v => updatePost(p.id, 'temps_edito', v)} /></td>
+                      <td className={td}>
+                        {p.qui_graph && <div className="text-[10px] font-semibold text-green-700 bg-green-100 rounded-full px-2 py-0.5 text-center mb-0.5">{p.qui_graph}</div>}
+                        <select value={p.qui_graph || ''} onChange={e => updatePost(p.id, 'qui_graph', e.target.value)}
+                          className={sel} style={{ opacity: p.qui_graph ? 0.3 : 1 }}>
+                          <option value="">—</option>{team.map(t => <option key={t} value={t}>{t}</option>)}</select>
+                      </td>
+                      <td className={td + ' text-center'}><StatutBadge value={p.statut_graph} options={STATUT_EDITO_OPTIONS} />
+                        <select value={p.statut_graph || ''} onChange={e => updatePost(p.id, 'statut_graph', e.target.value)}
+                          className={sel + ' mt-0.5'} style={{ opacity: 0.3 }}>
+                          <option value="">—</option>{STATUT_EDITO_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.value}</option>)}</select></td>
+                      <td className={td}><Stars value={p.temps_graph} onChange={v => updatePost(p.id, 'temps_graph', v)} /></td>
+                      <td className={td}>
+                        {p.qui_publi && <div className="text-[10px] font-semibold text-purple-700 bg-purple-100 rounded-full px-2 py-0.5 text-center mb-0.5">{p.qui_publi}</div>}
+                        <select value={p.qui_publi || ''} onChange={e => updatePost(p.id, 'qui_publi', e.target.value)}
+                          className={sel} style={{ opacity: p.qui_publi ? 0.3 : 1 }}>
+                          <option value="">—</option>{team.map(t => <option key={t} value={t}>{t}</option>)}</select>
+                      </td>
+                      <td className={td + ' text-center'}><StatutBadge value={p.statut_rs} options={STATUT_RS_OPTIONS} />
+                        <select value={p.statut_rs || ''} onChange={e => updatePost(p.id, 'statut_rs', e.target.value)}
+                          className={sel + ' mt-0.5'} style={{ opacity: 0.3 }}>
+                          <option value="">—</option>{STATUT_RS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.value}</option>)}</select></td>
+                      <td className={td + ' text-center text-gray-600'}><input type="time" value={p.heure_publi || ''} onChange={e => updatePost(p.id, 'heure_publi', e.target.value)} className={input + ' text-center'} /></td>
+                      <td className={td + ' text-center'}>
+                        {(p.lien_publi || p.visual_url) ? (
+                          <a href={p.lien_publi || p.visual_url} target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
+                            <ExternalLink size={13} />
+                          </a>
+                        ) : <span className="text-gray-300">—</span>}
+                      </td>
+                      <td className={td + ' text-center'}>
+                        <button onClick={() => deleteRow(p.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all p-1 rounded hover:bg-red-50">
+                          <Trash2 size={12} />
+                        </button>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td className={td + ' text-center'}><RsBadge platform={p.platform} size={14} /></td>
+                      <td className={td + ' text-right font-medium text-gray-700'}><input type="number" value={p.impressions ?? ''} onChange={e => updatePost(p.id, 'impressions', +e.target.value || null)} className={input + ' text-right'} /></td>
+                      <td className={td + ' text-right'} style={{ opacity: p.sponso ? 1 : 0.2 }}><input type="number" value={p.impressions_payees ?? ''} onChange={e => updatePost(p.id, 'impressions_payees', +e.target.value || null)} className={input + ' text-right'} disabled={!p.sponso} /></td>
+                      <td className={td + ' text-right font-medium text-gray-700'}><input type="number" value={p.couverture ?? ''} onChange={e => updatePost(p.id, 'couverture', +e.target.value || null)} className={input + ' text-right'} /></td>
+                      <td className={td + ' text-right'}><input type="number" value={p.interactions ?? ''} onChange={e => updatePost(p.id, 'interactions', +e.target.value || null)} className={input + ' text-right'} /></td>
+                      <td className={td + ' text-right text-[10px] font-semibold text-emerald-600 bg-emerald-50/50'}>{pct(p.interactions, p.couverture)}</td>
+                      <td className={td + ' text-right'}><input type="number" value={p.coms ?? ''} onChange={e => updatePost(p.id, 'coms', +e.target.value || null)} className={input + ' text-right'} /></td>
+                      <td className={td + ' text-right'}><input type="number" value={p.follows ?? ''} onChange={e => updatePost(p.id, 'follows', +e.target.value || null)} className={input + ' text-right'} /></td>
+                      <td className={td + ' text-right'}><input type="number" value={p.partage ?? ''} onChange={e => updatePost(p.id, 'partage', +e.target.value || null)} className={input + ' text-right'} /></td>
+                      <td className={td + ' text-right text-[10px] font-semibold text-blue-600 bg-blue-50/50'}>{pct(p.partage, p.couverture)}</td>
+                      <td className={td + ' text-right'} style={{ opacity: p.content_type === 'Vidéo' ? 1 : 0.15 }}><input type="number" value={p.duree_video ?? ''} onChange={e => updatePost(p.id, 'duree_video', +e.target.value || null)} className={input + ' text-right'} disabled={p.content_type !== 'Vidéo'} step="0.1" /></td>
+                      <td className={td + ' text-right'} style={{ opacity: p.content_type === 'Vidéo' ? 1 : 0.15 }}><input type="number" value={p.duree_moyenne ?? ''} onChange={e => updatePost(p.id, 'duree_moyenne', +e.target.value || null)} className={input + ' text-right'} disabled={p.content_type !== 'Vidéo'} step="0.1" /></td>
+                      <td className={td + ' text-right text-[10px] font-semibold text-purple-600 bg-purple-50/50'} style={{ opacity: p.content_type === 'Vidéo' ? 1 : 0.15 }}>{p.content_type === 'Vidéo' ? pct(p.duree_moyenne, p.duree_video) : '—'}</td>
+                    </>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
