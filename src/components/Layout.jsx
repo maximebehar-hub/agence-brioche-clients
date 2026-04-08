@@ -71,7 +71,7 @@ export default function Layout({ children }) {
         'lg:translate-x-0', sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       )}>
         <div className="px-4 py-4 flex items-center justify-center min-h-[64px]">
-          <span className="text-2xl font-black italic text-white tracking-tight">BRIOCHE</span>
+          <img src="/logo-text.png" alt="Brioche" className="h-7 w-auto" />
         </div>
 
         <nav className="flex-1 px-3 py-1 space-y-0.5 overflow-y-auto">
