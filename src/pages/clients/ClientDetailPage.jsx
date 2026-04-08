@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { Calendar, FileText, BarChart3, FolderOpen } from 'lucide-react'
+import { Calendar, FileText, BarChart3, FolderOpen, Pencil, ExternalLink } from 'lucide-react'
 import clsx from 'clsx'
+import { useStore } from '../../lib/store'
 import AgendaTab from './AgendaTab'
 import PostsTab from './PostsTab'
 import StatsTab from './StatsTab'
 import AssetsTab from './AssetsTab'
+import ClientModal from './ClientModal'
 
 const TABS = [
   { id: 'agenda', label: 'Agenda', icon: Calendar },
@@ -15,19 +17,34 @@ const TABS = [
   { id: 'assets', label: 'Assets & Drive', icon: FolderOpen }
 ]
 
+const STATUS_BADGE = {
+  actif: 'bg-green-100 text-green-700',
+  en_attente: 'bg-amber-100 text-amber-700',
+  inactif: 'bg-gray-100 text-gray-500'
+}
+const STATUS_LABEL = { actif: 'Actif', en_attente: 'En attente', inactif: 'Inactif' }
+
+const RS_CONFIG = [
+  { key: 'rs_instagram', label: 'IG' },
+  { key: 'rs_tiktok', label: 'TK' },
+  { key: 'rs_linkedin', label: 'IN' },
+  { key: 'rs_youtube', label: 'YT' },
+  { key: 'rs_x', label: '𝕏' },
+  { key: 'rs_facebook', label: 'FB' }
+]
+
 export default function ClientDetailPage() {
   const { idOrSlug } = useParams()
+  const { perm } = useStore()
   const [client, setClient] = useState(null)
   const [activeTab, setActiveTab] = useState('agenda')
   const [loading, setLoading] = useState(true)
+  const [showEdit, setShowEdit] = useState(false)
 
-  useEffect(() => {
-    loadClient()
-  }, [idOrSlug])
+  useEffect(() => { loadClient() }, [idOrSlug])
 
   const loadClient = async () => {
     setLoading(true)
-    // Essai par slug d'abord, puis par ID
     let { data } = await supabase.from('portal_clients').select('*').eq('slug', idOrSlug).single()
     if (!data) {
       const res = await supabase.from('portal_clients').select('*').eq('id', idOrSlug).single()
@@ -37,12 +54,15 @@ export default function ClientDetailPage() {
     setLoading(false)
   }
 
-  if (loading) {
-    return <div className="text-center py-12 text-gray-400 text-sm animate-pulse-soft">Chargement...</div>
-  }
+  if (loading) return <div className="text-center py-12 text-gray-400 text-sm animate-pulse-soft">Chargement...</div>
+  if (!client) return <div className="text-center py-12 text-gray-400 text-sm">Client introuvable</div>
 
-  if (!client) {
-    return <div className="text-center py-12 text-gray-400 text-sm">Client introuvable</div>
+  const activeRS = RS_CONFIG.filter(rs => client[rs.key])
+
+  const rsLink = (val) => {
+    if (val.startsWith('http')) return val
+    if (val.startsWith('@')) return null
+    return null
   }
 
   const TabContent = () => {
@@ -59,18 +79,58 @@ export default function ClientDetailPage() {
     <div className="space-y-5">
       {/* Header client */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="h-2" style={{ background: client.color || '#5622d9' }} />
-        <div className="p-5 flex items-center gap-4">
-          {client.logo_url ? (
-            <img src={client.logo_url} alt={client.name} className="w-14 h-14 rounded-xl object-cover" />
-          ) : (
-            <div className="w-14 h-14 rounded-xl flex items-center justify-center text-white text-xl font-bold" style={{ background: client.color || '#5622d9' }}>
-              {client.name?.charAt(0)}
+        <div className="h-2" style={{ background: client.color || '#cc0000' }} />
+        <div className="p-5">
+          <div className="flex items-start gap-4">
+            {client.logo_url ? (
+              <img src={client.logo_url} alt={client.name} className="w-14 h-14 rounded-xl object-cover" />
+            ) : (
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center text-white text-xl font-bold" style={{ background: client.color || '#cc0000' }}>
+                {client.name?.charAt(0)}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3">
+                <h1 className="text-xl font-bold text-gray-900">{client.name}</h1>
+                {client.status && (
+                  <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ${STATUS_BADGE[client.status]}`}>
+                    {STATUS_LABEL[client.status] || client.status}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                {client.type && <span className="text-sm text-gray-500">{client.type}</span>}
+              </div>
+              {client.bio && <p className="text-sm text-gray-500 mt-2">{client.bio}</p>}
+
+              {/* Réseaux sociaux */}
+              {activeRS.length > 0 && (
+                <div className="flex items-center gap-2 mt-3 flex-wrap">
+                  {activeRS.map(rs => {
+                    const link = rsLink(client[rs.key])
+                    const content = (
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-lg text-xs text-gray-600 hover:bg-gray-200 transition-colors">
+                        <span className="text-[10px] font-bold text-gray-500">{rs.label}</span>
+                        <span>{client[rs.key]}</span>
+                        {link && <ExternalLink size={10} className="text-gray-400" />}
+                      </div>
+                    )
+                    return link ? (
+                      <a key={rs.key} href={link} target="_blank" rel="noopener noreferrer">{content}</a>
+                    ) : (
+                      <div key={rs.key}>{content}</div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
-          )}
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">{client.name}</h1>
-            {client.description && <p className="text-sm text-gray-500 mt-0.5">{client.description}</p>}
+
+            {perm('canEditClient') && (
+              <button onClick={() => setShowEdit(true)}
+                className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-[#cc0000] transition-colors shrink-0">
+                <Pencil size={18} />
+              </button>
+            )}
           </div>
         </div>
 
@@ -81,7 +141,7 @@ export default function ClientDetailPage() {
               className={clsx(
                 'flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors',
                 activeTab === tab.id
-                  ? 'border-brioche-violet text-brioche-violet'
+                  ? 'border-[#cc0000] text-[#cc0000]'
                   : 'border-transparent text-gray-400 hover:text-gray-600'
               )}>
               <tab.icon size={16} />
@@ -91,8 +151,11 @@ export default function ClientDetailPage() {
         </div>
       </div>
 
-      {/* Tab content */}
       <TabContent />
+
+      {showEdit && (
+        <ClientModal client={client} onClose={() => setShowEdit(false)} onSaved={loadClient} />
+      )}
     </div>
   )
 }
