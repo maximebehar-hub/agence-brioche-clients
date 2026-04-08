@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import { Plus, X, List, Palette } from 'lucide-react'
+import { Plus, X, Pencil, Check } from 'lucide-react'
 import clsx from 'clsx'
 
 const PRESET_COLORS = [
@@ -10,31 +10,116 @@ const PRESET_COLORS = [
   '#a855f7', '#ec4899', '#6b7280', '#1f2937',
 ]
 
-const PAGES = [
-  { id: 'listes', label: 'Listes', icon: List },
-  { id: 'couleurs', label: 'Couleurs', icon: Palette },
-]
+function ColorDot({ value, onChange }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="relative shrink-0">
+      <button onClick={() => setOpen(!open)}
+        className="w-5 h-5 rounded-full border-2 border-gray-200 hover:border-gray-400 transition-colors cursor-pointer"
+        style={{ background: value || '#d1d5db' }} />
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute top-7 left-1/2 -translate-x-1/2 z-50 bg-white rounded-xl shadow-xl border border-gray-200 p-2 grid grid-cols-4 gap-1.5 w-max">
+            <button onClick={() => { onChange(''); setOpen(false) }}
+              className="w-7 h-7 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:border-gray-400">
+              <X size={10} />
+            </button>
+            {PRESET_COLORS.map(c => (
+              <button key={c} onClick={() => { onChange(c); setOpen(false) }}
+                className={clsx('w-7 h-7 rounded-full border-2 transition-all hover:scale-110',
+                  value === c ? 'border-gray-800 scale-110 ring-2 ring-gray-200' : 'border-white')}
+                style={{ background: c }} />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
 
-function TagList({ label, items, onAdd, onRemove }) {
+function OptionSection({ title, description, items, colorMap, onUpdate, clientId, colKey, allColors }) {
   const [input, setInput] = useState('')
+  const [editIdx, setEditIdx] = useState(null)
+  const [editVal, setEditVal] = useState('')
+
+  const saveList = async (newItems) => {
+    onUpdate(newItems)
+  }
+
+  const saveColor = async (val, color) => {
+    const updatedCol = { ...colorMap }
+    if (color) updatedCol[val] = color
+    else delete updatedCol[val]
+    const updatedAll = { ...allColors, [colKey]: updatedCol }
+    await supabase.from('portal_clients').update({ options_colors: updatedAll }).eq('id', clientId)
+  }
+
   const handleAdd = () => {
     const val = input.trim()
     if (!val || items.includes(val)) return
-    onAdd(val)
+    saveList([...items, val])
     setInput('')
   }
+
+  const handleRename = (oldVal, newVal) => {
+    if (!newVal.trim() || (newVal !== oldVal && items.includes(newVal))) return
+    const newItems = items.map(i => i === oldVal ? newVal.trim() : i)
+    // Also rename in colorMap
+    if (colorMap[oldVal]) {
+      const updatedCol = { ...colorMap }
+      updatedCol[newVal.trim()] = updatedCol[oldVal]
+      delete updatedCol[oldVal]
+      const updatedAll = { ...allColors, [colKey]: updatedCol }
+      supabase.from('portal_clients').update({ options_colors: updatedAll }).eq('id', clientId)
+    }
+    saveList(newItems)
+    setEditIdx(null)
+  }
+
+  const handleRemove = (val) => {
+    saveList(items.filter(i => i !== val))
+  }
+
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-      <h3 className="font-bold text-gray-900 mb-3">{label}</h3>
-      <div className="flex flex-wrap gap-2 mb-3">
-        {items.map(item => (
-          <span key={item} className="flex items-center gap-1.5 px-3 py-1.5 bg-brioche-beige rounded-lg text-sm text-gray-700">
-            {item}
-            <button onClick={() => onRemove(item)} className="text-gray-400 hover:text-red-500"><X size={12} /></button>
-          </span>
-        ))}
-        {items.length === 0 && <span className="text-sm text-gray-400">Aucun element</span>}
+      <div className="mb-4">
+        <h3 className="font-bold text-gray-900">{title}</h3>
+        {description && <p className="text-xs text-gray-400 mt-0.5">{description}</p>}
       </div>
+
+      <div className="space-y-1 mb-3">
+        {items.map((item, idx) => (
+          <div key={idx} className="flex items-center gap-2.5 py-1.5 px-2 rounded-lg hover:bg-gray-50 group">
+            <ColorDot value={colorMap[item] || ''} onChange={c => saveColor(item, c)} />
+
+            {editIdx === idx ? (
+              <div className="flex items-center gap-1.5 flex-1">
+                <input value={editVal} onChange={e => setEditVal(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') handleRename(item, editVal); if (e.key === 'Escape') setEditIdx(null) }}
+                  className="flex-1 px-2 py-0.5 bg-blue-50 rounded-lg text-sm border border-blue-200 focus:outline-none" autoFocus />
+                <button onClick={() => handleRename(item, editVal)} className="text-green-600 hover:text-green-700"><Check size={14} /></button>
+                <button onClick={() => setEditIdx(null)} className="text-gray-400 hover:text-gray-600"><X size={14} /></button>
+              </div>
+            ) : (
+              <>
+                {colorMap[item] ? (
+                  <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full text-white" style={{ background: colorMap[item] }}>{item}</span>
+                ) : (
+                  <span className="text-sm text-gray-700">{item}</span>
+                )}
+                <div className="flex-1" />
+                <button onClick={() => { setEditIdx(idx); setEditVal(item) }}
+                  className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 transition-opacity"><Pencil size={12} /></button>
+                <button onClick={() => handleRemove(item)}
+                  className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity"><X size={12} /></button>
+              </>
+            )}
+          </div>
+        ))}
+        {items.length === 0 && <p className="text-sm text-gray-400 px-2">Aucun element</p>}
+      </div>
+
       <div className="flex gap-2">
         <input type="text" value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAdd())}
@@ -47,68 +132,7 @@ function TagList({ label, items, onAdd, onRemove }) {
   )
 }
 
-function ColorPicker({ value, onChange }) {
-  const [open, setOpen] = useState(false)
-  return (
-    <div className="relative shrink-0">
-      <button onClick={() => setOpen(!open)}
-        className="w-6 h-6 rounded-md border-2 border-gray-200 hover:border-gray-400 transition-colors cursor-pointer shrink-0"
-        style={{ background: value || '#e5e7eb' }} />
-      {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50 bg-white rounded-xl shadow-xl border border-gray-200 p-2.5 grid grid-cols-4 gap-2 w-max">
-            <button onClick={() => { onChange(''); setOpen(false) }}
-              className="w-8 h-8 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:border-gray-400">
-              <X size={12} />
-            </button>
-            {PRESET_COLORS.map(c => (
-              <button key={c} onClick={() => { onChange(c); setOpen(false) }}
-                className={clsx('w-8 h-8 rounded-lg border-2 transition-all hover:scale-110',
-                  value === c ? 'border-gray-800 ring-2 ring-gray-300 scale-110' : 'border-white')}
-                style={{ background: c }} />
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  )
-}
-
-function ColorMapEditor({ label, values, colorMap, clientId, colKey, allColors }) {
-  const saveColor = async (val, color) => {
-    const updatedCol = { ...colorMap, [val]: color }
-    if (!color) delete updatedCol[val]
-    const updatedAll = { ...allColors, [colKey]: updatedCol }
-    await supabase.from('portal_clients').update({ options_colors: updatedAll }).eq('id', clientId)
-  }
-
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-      <h3 className="font-bold text-gray-900 mb-3">{label}</h3>
-      {values.length === 0 ? (
-        <p className="text-sm text-gray-400">Ajoutez des valeurs dans l'onglet Listes d'abord</p>
-      ) : (
-        <div className="space-y-1">
-          {values.map(val => (
-            <div key={val} className="flex items-center gap-3 py-1.5 px-2 rounded-lg hover:bg-gray-50">
-              <ColorPicker value={colorMap[val] || ''} onChange={c => saveColor(val, c)} />
-              <span className="text-sm font-medium text-gray-700 flex-1">{val}</span>
-              {colorMap[val] && (
-                <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full text-white shrink-0" style={{ background: colorMap[val] }}>
-                  Aperçu
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
 export default function OptionsTab({ client, onClientUpdate }) {
-  const [page, setPage] = useState('listes')
   const categories = client.options_categories || []
   const avec = client.options_avec || []
   const team = client.options_team || []
@@ -126,46 +150,40 @@ export default function OptionsTab({ client, onClientUpdate }) {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-2 bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3">
-        {PAGES.map(p => (
-          <button key={p.id} onClick={() => setPage(p.id)}
-            className={clsx('flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors',
-              page === p.id ? 'bg-[#cc0000] text-white' : 'text-gray-500 hover:bg-gray-100')}>
-            <p.icon size={16} /> {p.label}
-          </button>
-        ))}
+      <div>
+        <h2 className="text-lg font-bold text-gray-900">Options du client</h2>
+        <p className="text-sm text-gray-500 mt-1">Configurez les listes et couleurs des menus déroulants</p>
       </div>
 
-      {page === 'listes' && (
-        <>
-          <TagList label="Catégories" items={categories}
-            onAdd={val => save('options_categories', [...categories, val])}
-            onRemove={val => save('options_categories', categories.filter(c => c !== val))} />
-          <TagList label="Avec (collaborateurs, partenaires)" items={avec}
-            onAdd={val => save('options_avec', [...avec, val])}
-            onRemove={val => save('options_avec', avec.filter(c => c !== val))} />
-          <TagList label="Équipe (prénoms pour édito/graph/publi)" items={team}
-            onAdd={val => save('options_team', [...team, val])}
-            onRemove={val => save('options_team', team.filter(c => c !== val))} />
-        </>
-      )}
+      <div className="grid lg:grid-cols-2 gap-5">
+        <OptionSection title="Catégories" items={categories} colKey="col_categorie"
+          colorMap={colors.col_categorie || {}} clientId={client.id} allColors={colors}
+          onUpdate={val => save('options_categories', val)} />
 
-      {page === 'couleurs' && (
-        <>
-          <ColorMapEditor label="Catégories" values={categories} colKey="col_categorie"
-            colorMap={colors.col_categorie || {}} clientId={client.id} allColors={colors} />
-          <ColorMapEditor label="Types de contenu" values={CONTENT_TYPE_VALS} colKey="col_content_type"
-            colorMap={colors.col_content_type || {}} clientId={client.id} allColors={colors} />
-          <ColorMapEditor label="Réseaux sociaux" values={PLATFORM_VALS} colKey="col_platform"
-            colorMap={colors.col_platform || {}} clientId={client.id} allColors={colors} />
-          <ColorMapEditor label="Statuts édito / graph" values={STATUT_EDITO_VALS} colKey="col_statut_edito"
-            colorMap={colors.col_statut_edito || {}} clientId={client.id} allColors={colors} />
-          <ColorMapEditor label="Statuts RS" values={STATUT_RS_VALS} colKey="col_statut_rs"
-            colorMap={colors.col_statut_rs || {}} clientId={client.id} allColors={colors} />
-          <ColorMapEditor label="Membres équipe" values={team} colKey="col_team"
-            colorMap={colors.col_team || {}} clientId={client.id} allColors={colors} />
-        </>
-      )}
+        <OptionSection title="Avec" description="Collaborateurs, partenaires" items={avec} colKey="col_avec"
+          colorMap={colors.col_avec || {}} clientId={client.id} allColors={colors}
+          onUpdate={val => save('options_avec', val)} />
+
+        <OptionSection title="Équipe" description="Prénoms pour édito / graph / publi" items={team} colKey="col_team"
+          colorMap={colors.col_team || {}} clientId={client.id} allColors={colors}
+          onUpdate={val => save('options_team', val)} />
+
+        <OptionSection title="Types de contenu" items={CONTENT_TYPE_VALS} colKey="col_content_type"
+          colorMap={colors.col_content_type || {}} clientId={client.id} allColors={colors}
+          onUpdate={() => {}} />
+
+        <OptionSection title="Réseaux sociaux" items={PLATFORM_VALS} colKey="col_platform"
+          colorMap={colors.col_platform || {}} clientId={client.id} allColors={colors}
+          onUpdate={() => {}} />
+
+        <OptionSection title="Statuts édito / graph" items={STATUT_EDITO_VALS} colKey="col_statut_edito"
+          colorMap={colors.col_statut_edito || {}} clientId={client.id} allColors={colors}
+          onUpdate={() => {}} />
+
+        <OptionSection title="Statuts RS" items={STATUT_RS_VALS} colKey="col_statut_rs"
+          colorMap={colors.col_statut_rs || {}} clientId={client.id} allColors={colors}
+          onUpdate={() => {}} />
+      </div>
     </div>
   )
 }
