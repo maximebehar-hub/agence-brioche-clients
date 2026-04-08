@@ -38,7 +38,7 @@ function ColorDot({ value, onChange }) {
   )
 }
 
-function OptionSection({ title, description, items, colorMap, onUpdate, clientId, colKey, allColors }) {
+function OptionSection({ title, description, items, colorMap, onUpdate, clientId, colKey, allColors, onColorChange }) {
   const [input, setInput] = useState('')
   const [editIdx, setEditIdx] = useState(null)
   const [editVal, setEditVal] = useState('')
@@ -52,6 +52,7 @@ function OptionSection({ title, description, items, colorMap, onUpdate, clientId
     if (color) updatedCol[val] = color
     else delete updatedCol[val]
     const updatedAll = { ...allColors, [colKey]: updatedCol }
+    onColorChange?.(updatedAll)
     await supabase.from('portal_clients').update({ options_colors: updatedAll }).eq('id', clientId)
   }
 
@@ -71,6 +72,7 @@ function OptionSection({ title, description, items, colorMap, onUpdate, clientId
       updatedCol[newVal.trim()] = updatedCol[oldVal]
       delete updatedCol[oldVal]
       const updatedAll = { ...allColors, [colKey]: updatedCol }
+      onColorChange?.(updatedAll)
       supabase.from('portal_clients').update({ options_colors: updatedAll }).eq('id', clientId)
     }
     saveList(newItems)
@@ -136,7 +138,7 @@ export default function OptionsTab({ client, onClientUpdate }) {
   const categories = client.options_categories || []
   const avec = client.options_avec || []
   const team = client.options_team || []
-  const colors = client.options_colors || {}
+  const [colors, setColors] = useState(client.options_colors || {})
 
   const save = async (field, value) => {
     await supabase.from('portal_clients').update({ [field]: value }).eq('id', client.id)
@@ -158,31 +160,31 @@ export default function OptionsTab({ client, onClientUpdate }) {
       <div className="grid lg:grid-cols-2 gap-5">
         <OptionSection title="Catégories" items={categories} colKey="col_categorie"
           colorMap={colors.col_categorie || {}} clientId={client.id} allColors={colors}
-          onUpdate={val => save('options_categories', val)} />
+          onUpdate={val => save('options_categories', val)} onColorChange={setColors} />
 
         <OptionSection title="Avec" description="Collaborateurs, partenaires" items={avec} colKey="col_avec"
           colorMap={colors.col_avec || {}} clientId={client.id} allColors={colors}
-          onUpdate={val => save('options_avec', val)} />
+          onUpdate={val => save('options_avec', val)} onColorChange={setColors} />
 
         <OptionSection title="Équipe" description="Prénoms pour édito / graph / publi" items={team} colKey="col_team"
           colorMap={colors.col_team || {}} clientId={client.id} allColors={colors}
-          onUpdate={val => save('options_team', val)} />
+          onUpdate={val => save('options_team', val)} onColorChange={setColors} />
 
         <OptionSection title="Types de contenu" items={CONTENT_TYPE_VALS} colKey="col_content_type"
           colorMap={colors.col_content_type || {}} clientId={client.id} allColors={colors}
-          onUpdate={() => {}} />
+          onUpdate={() => {}} onColorChange={setColors} />
 
         <OptionSection title="Réseaux sociaux" items={PLATFORM_VALS} colKey="col_platform"
           colorMap={colors.col_platform || {}} clientId={client.id} allColors={colors}
-          onUpdate={() => {}} />
+          onUpdate={() => {}} onColorChange={setColors} />
 
         <OptionSection title="Statuts édito / graph" items={STATUT_EDITO_VALS} colKey="col_statut_edito"
           colorMap={colors.col_statut_edito || {}} clientId={client.id} allColors={colors}
-          onUpdate={() => {}} />
+          onUpdate={() => {}} onColorChange={setColors} />
 
         <OptionSection title="Statuts RS" items={STATUT_RS_VALS} colKey="col_statut_rs"
           colorMap={colors.col_statut_rs || {}} clientId={client.id} allColors={colors}
-          onUpdate={() => {}} />
+          onUpdate={() => {}} onColorChange={setColors} />
       </div>
     </div>
   )
