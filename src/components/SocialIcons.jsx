@@ -56,6 +56,8 @@ export function StravaIcon({ className = '', size = 20 }) {
 
 export const RS_ICON_MAP = {
   'Instagram': InstagramIcon,
+  'Instagram Story': InstagramIcon,
+  'Instagram Test': InstagramIcon,
   'TikTok': TikTokIcon,
   'Facebook': FacebookIcon,
   'YouTube': YouTubeIcon,

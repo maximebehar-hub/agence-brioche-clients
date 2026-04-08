@@ -8,13 +8,14 @@ import { RS_ICON_MAP } from '../../components/SocialIcons'
 const CONTENT_TYPES = ['Visuel', 'Carrousel', 'Vidéo', 'Story', 'Article', 'Newsletter']
 const RS_OPTIONS = [
   { value: 'Instagram', label: 'IG', color: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' },
+  { value: 'Instagram Story', label: 'IG', suffix: 'Story', color: 'bg-gradient-to-r from-yellow-400 to-pink-500 text-white' },
+  { value: 'Instagram Test', label: 'IG', suffix: 'Test', color: 'bg-gradient-to-r from-purple-400 to-indigo-500 text-white' },
   { value: 'TikTok', label: 'TK', color: 'bg-black text-white' },
   { value: 'Facebook', label: 'FB', color: 'bg-blue-600 text-white' },
   { value: 'YouTube', label: 'YT', color: 'bg-red-600 text-white' },
   { value: 'LinkedIn', label: 'IN', color: 'bg-blue-700 text-white' },
   { value: 'X', label: '𝕏', color: 'bg-gray-900 text-white' },
   { value: 'Strava', label: 'ST', color: 'bg-orange-500 text-white' },
-  { value: 'Story Insta', label: 'SI', color: 'bg-gradient-to-r from-yellow-400 to-pink-500 text-white' }
 ]
 const STATUT_EDITO_OPTIONS = [
   { value: 'Fait', color: 'bg-green-100 text-green-800' },
@@ -61,25 +62,52 @@ function pct(a, b) {
   return (a / b * 100).toFixed(2) + '%'
 }
 
-function RsBadge({ platform, size = 16 }) {
+function RsBadge({ platform, size = 14 }) {
   const opt = RS_OPTIONS.find(r => r.value === platform)
   const Icon = RS_ICON_MAP[platform]
   if (!Icon) return <span className="text-[10px] text-gray-400">—</span>
   return (
-    <div className={clsx('inline-flex items-center justify-center w-7 h-7 rounded-lg', opt?.color || 'bg-gray-200')}>
-      <Icon size={size} className="text-white" />
+    <div className="inline-flex items-center gap-1">
+      <div className={clsx('inline-flex items-center justify-center w-7 h-7 rounded-lg', opt?.color || 'bg-gray-200')}>
+        <Icon size={size} className="text-white" />
+      </div>
+      {opt?.suffix && <span className="text-[8px] font-bold text-gray-500 uppercase">{opt.suffix}</span>}
     </div>
   )
 }
 
-function StatutBadge({ value, options }) {
-  const opt = options.find(o => o.value === value)
+function StatutBadge({ value, options, customColor }) {
   if (!value) return <span className="text-gray-300 text-[10px]">—</span>
+  const opt = options.find(o => o.value === value)
+  if (customColor) {
+    return (
+      <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap text-white" style={{ background: customColor }}>
+        {value}
+      </span>
+    )
+  }
   return (
     <span className={clsx('text-[9px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap', opt?.color || 'bg-gray-100 text-gray-600')}>
       {value}
     </span>
   )
+}
+
+function TeamBadge({ name, customColor, fallbackClass }) {
+  if (!name) return null
+  if (customColor) {
+    return <div className="text-[10px] font-semibold text-white rounded-full px-2 py-0.5 text-center mb-0.5" style={{ background: customColor }}>{name}</div>
+  }
+  return <div className={clsx('text-[10px] font-semibold rounded-full px-2 py-0.5 text-center mb-0.5', fallbackClass)}>{name}</div>
+}
+
+function CategoryBadge({ value, customColor }) {
+  if (!value) return null
+  if (customColor) {
+    return <span className="text-[10px] font-semibold px-2 py-1 rounded-full text-white" style={{ background: customColor }}>{value}</span>
+  }
+  const fallback = CATEGORY_COLORS[value] || 'bg-gray-100 text-gray-700'
+  return <span className={clsx('text-[10px] font-semibold px-2 py-1 rounded-full', fallback)}>{value}</span>
 }
 
 export default function PostsTab({ client }) {
@@ -94,6 +122,7 @@ export default function PostsTab({ client }) {
   const categories = client.options_categories || []
   const avecOptions = client.options_avec || []
   const team = client.options_team || []
+  const colorMap = client.options_colors || {}
 
   const daysInMonth = getDaysInMonth(new Date(year, month))
   const dayOptions = Array.from({ length: daysInMonth }, (_, i) => {
@@ -269,11 +298,7 @@ export default function PostsTab({ client }) {
                       <td className={td}><textarea value={p.wording || p.caption || ''} onChange={e => updatePost(p.id, 'wording', e.target.value)}
                         className={input + ' resize-none text-gray-600'} rows={2} /></td>
                       <td className={td}>
-                        {p.categorie ? (
-                          <span className={clsx('text-[10px] font-semibold px-2 py-1 rounded-full', CATEGORY_COLORS[p.categorie] || 'bg-gray-100 text-gray-700')}>
-                            {p.categorie}
-                          </span>
-                        ) : null}
+                        <CategoryBadge value={p.categorie} customColor={colorMap.col_categorie?.[p.categorie]} />
                         <select value={p.categorie || ''} onChange={e => updatePost(p.id, 'categorie', e.target.value)}
                           className={sel + ' mt-0.5'} style={{ opacity: p.categorie ? 0.4 : 1 }}>
                           <option value="">—</option>
@@ -284,13 +309,13 @@ export default function PostsTab({ client }) {
                         <option value="">—</option>{avecOptions.map(a => <option key={a} value={a}>{a}</option>)}</select></td>
                       <td className={td}><select value={p.content_type || ''} onChange={e => updatePost(p.id, 'content_type', e.target.value)} className={sel}>
                         <option value="">—</option>{CONTENT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select></td>
-                      <td className={td + ' text-center'}>
-                        <div className="flex flex-col items-center gap-1">
+                      <td className={td + ' text-center align-middle'}>
+                        <div className="relative group/rs inline-block">
                           <RsBadge platform={p.platform} size={14} />
                           <select value={p.platform || ''} onChange={e => updatePost(p.id, 'platform', e.target.value)}
-                            className="text-[9px] bg-transparent focus:outline-none w-full text-center text-gray-400">
+                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
                             <option value="">—</option>
-                            {RS_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                            {RS_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.suffix ? `${r.label} ${r.suffix}` : r.label}</option>)}
                           </select>
                         </div>
                       </td>
@@ -300,34 +325,34 @@ export default function PostsTab({ client }) {
                         {p.sponso && <div className="text-[8px] font-bold text-orange-600 mt-0.5">Sponso</div>}
                       </td>
                       <td className={td}>
-                        {p.qui_edito && <div className="text-[10px] font-semibold text-blue-700 bg-blue-100 rounded-full px-2 py-0.5 text-center mb-0.5">{p.qui_edito}</div>}
+                        <TeamBadge name={p.qui_edito} customColor={colorMap.col_team?.[p.qui_edito]} fallbackClass="text-blue-700 bg-blue-100" />
                         <select value={p.qui_edito || ''} onChange={e => updatePost(p.id, 'qui_edito', e.target.value)}
                           className={sel} style={{ opacity: p.qui_edito ? 0.3 : 1 }}>
                           <option value="">—</option>{team.map(t => <option key={t} value={t}>{t}</option>)}</select>
                       </td>
-                      <td className={td + ' text-center'}><StatutBadge value={p.statut_edito} options={STATUT_EDITO_OPTIONS} />
+                      <td className={td + ' text-center'}><StatutBadge value={p.statut_edito} options={STATUT_EDITO_OPTIONS} customColor={colorMap.col_statut_edito?.[p.statut_edito]} />
                         <select value={p.statut_edito || ''} onChange={e => updatePost(p.id, 'statut_edito', e.target.value)}
                           className={sel + ' mt-0.5'} style={{ opacity: 0.3 }}>
                           <option value="">—</option>{STATUT_EDITO_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.value}</option>)}</select></td>
                       <td className={td}><Stars value={p.temps_edito} onChange={v => updatePost(p.id, 'temps_edito', v)} /></td>
                       <td className={td}>
-                        {p.qui_graph && <div className="text-[10px] font-semibold text-green-700 bg-green-100 rounded-full px-2 py-0.5 text-center mb-0.5">{p.qui_graph}</div>}
+                        <TeamBadge name={p.qui_graph} customColor={colorMap.col_team?.[p.qui_graph]} fallbackClass="text-green-700 bg-green-100" />
                         <select value={p.qui_graph || ''} onChange={e => updatePost(p.id, 'qui_graph', e.target.value)}
                           className={sel} style={{ opacity: p.qui_graph ? 0.3 : 1 }}>
                           <option value="">—</option>{team.map(t => <option key={t} value={t}>{t}</option>)}</select>
                       </td>
-                      <td className={td + ' text-center'}><StatutBadge value={p.statut_graph} options={STATUT_EDITO_OPTIONS} />
+                      <td className={td + ' text-center'}><StatutBadge value={p.statut_graph} options={STATUT_EDITO_OPTIONS} customColor={colorMap.col_statut_edito?.[p.statut_graph]} />
                         <select value={p.statut_graph || ''} onChange={e => updatePost(p.id, 'statut_graph', e.target.value)}
                           className={sel + ' mt-0.5'} style={{ opacity: 0.3 }}>
                           <option value="">—</option>{STATUT_EDITO_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.value}</option>)}</select></td>
                       <td className={td}><Stars value={p.temps_graph} onChange={v => updatePost(p.id, 'temps_graph', v)} /></td>
                       <td className={td}>
-                        {p.qui_publi && <div className="text-[10px] font-semibold text-purple-700 bg-purple-100 rounded-full px-2 py-0.5 text-center mb-0.5">{p.qui_publi}</div>}
+                        <TeamBadge name={p.qui_publi} customColor={colorMap.col_team?.[p.qui_publi]} fallbackClass="text-purple-700 bg-purple-100" />
                         <select value={p.qui_publi || ''} onChange={e => updatePost(p.id, 'qui_publi', e.target.value)}
                           className={sel} style={{ opacity: p.qui_publi ? 0.3 : 1 }}>
                           <option value="">—</option>{team.map(t => <option key={t} value={t}>{t}</option>)}</select>
                       </td>
-                      <td className={td + ' text-center'}><StatutBadge value={p.statut_rs} options={STATUT_RS_OPTIONS} />
+                      <td className={td + ' text-center'}><StatutBadge value={p.statut_rs} options={STATUT_RS_OPTIONS} customColor={colorMap.col_statut_rs?.[p.statut_rs]} />
                         <select value={p.statut_rs || ''} onChange={e => updatePost(p.id, 'statut_rs', e.target.value)}
                           className={sel + ' mt-0.5'} style={{ opacity: 0.3 }}>
                           <option value="">—</option>{STATUT_RS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.value}</option>)}</select></td>
@@ -350,7 +375,7 @@ export default function PostsTab({ client }) {
                     <>
                       <td className={td + ' text-center'}><RsBadge platform={p.platform} size={14} /></td>
                       <td className={td + ' text-right font-medium text-gray-700'}><input type="number" value={p.impressions ?? ''} onChange={e => updatePost(p.id, 'impressions', +e.target.value || null)} className={input + ' text-right'} /></td>
-                      <td className={td + ' text-right'} style={{ opacity: p.sponso ? 1 : 0.2 }}><input type="number" value={p.impressions_payees ?? ''} onChange={e => updatePost(p.id, 'impressions_payees', +e.target.value || null)} className={input + ' text-right'} disabled={!p.sponso} /></td>
+                      <td className={clsx(td, 'text-right', !p.sponso && 'bg-gray-100')}>{p.sponso ? <input type="number" value={p.impressions_payees ?? ''} onChange={e => updatePost(p.id, 'impressions_payees', +e.target.value || null)} className={input + ' text-right'} /> : null}</td>
                       <td className={td + ' text-right font-medium text-gray-700'}><input type="number" value={p.couverture ?? ''} onChange={e => updatePost(p.id, 'couverture', +e.target.value || null)} className={input + ' text-right'} /></td>
                       <td className={td + ' text-right'}><input type="number" value={p.interactions ?? ''} onChange={e => updatePost(p.id, 'interactions', +e.target.value || null)} className={input + ' text-right'} /></td>
                       <td className={td + ' text-right text-[10px] font-semibold text-emerald-600 bg-emerald-50/50'}>{pct(p.interactions, p.couverture)}</td>
@@ -358,9 +383,9 @@ export default function PostsTab({ client }) {
                       <td className={td + ' text-right'}><input type="number" value={p.follows ?? ''} onChange={e => updatePost(p.id, 'follows', +e.target.value || null)} className={input + ' text-right'} /></td>
                       <td className={td + ' text-right'}><input type="number" value={p.partage ?? ''} onChange={e => updatePost(p.id, 'partage', +e.target.value || null)} className={input + ' text-right'} /></td>
                       <td className={td + ' text-right text-[10px] font-semibold text-blue-600 bg-blue-50/50'}>{pct(p.partage, p.couverture)}</td>
-                      <td className={td + ' text-right'} style={{ opacity: p.content_type === 'Vidéo' ? 1 : 0.15 }}><input type="number" value={p.duree_video ?? ''} onChange={e => updatePost(p.id, 'duree_video', +e.target.value || null)} className={input + ' text-right'} disabled={p.content_type !== 'Vidéo'} step="0.1" /></td>
-                      <td className={td + ' text-right'} style={{ opacity: p.content_type === 'Vidéo' ? 1 : 0.15 }}><input type="number" value={p.duree_moyenne ?? ''} onChange={e => updatePost(p.id, 'duree_moyenne', +e.target.value || null)} className={input + ' text-right'} disabled={p.content_type !== 'Vidéo'} step="0.1" /></td>
-                      <td className={td + ' text-right text-[10px] font-semibold text-purple-600 bg-purple-50/50'} style={{ opacity: p.content_type === 'Vidéo' ? 1 : 0.15 }}>{p.content_type === 'Vidéo' ? pct(p.duree_moyenne, p.duree_video) : '—'}</td>
+                      <td className={clsx(td, 'text-right', p.content_type !== 'Vidéo' && 'bg-gray-100')}>{p.content_type === 'Vidéo' ? <input type="number" value={p.duree_video ?? ''} onChange={e => updatePost(p.id, 'duree_video', +e.target.value || null)} className={input + ' text-right'} step="0.1" /> : null}</td>
+                      <td className={clsx(td, 'text-right', p.content_type !== 'Vidéo' && 'bg-gray-100')}>{p.content_type === 'Vidéo' ? <input type="number" value={p.duree_moyenne ?? ''} onChange={e => updatePost(p.id, 'duree_moyenne', +e.target.value || null)} className={input + ' text-right'} step="0.1" /> : null}</td>
+                      <td className={clsx(td, 'text-right text-[10px] font-semibold', p.content_type === 'Vidéo' ? 'text-purple-600 bg-purple-50/50' : 'bg-gray-100')}>{p.content_type === 'Vidéo' ? pct(p.duree_moyenne, p.duree_video) : null}</td>
                     </>
                   )}
                 </tr>
