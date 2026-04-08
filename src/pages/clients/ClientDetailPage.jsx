@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { Calendar, FileText, BarChart3, FolderOpen, Pencil, ExternalLink, Trash2 } from 'lucide-react'
+import { Calendar, FileText, BarChart3, FolderOpen, Pencil, ExternalLink, Trash2, Settings } from 'lucide-react'
 import clsx from 'clsx'
 import { useStore } from '../../lib/store'
 import AgendaTab from './AgendaTab'
@@ -9,12 +9,14 @@ import PostsTab from './PostsTab'
 import StatsTab from './StatsTab'
 import AssetsTab from './AssetsTab'
 import ClientModal from './ClientModal'
+import OptionsTab from './OptionsTab'
 
 const TABS = [
   { id: 'agenda', label: 'Agenda', icon: Calendar },
   { id: 'posts', label: 'Posts', icon: FileText },
   { id: 'stats', label: 'Stats', icon: BarChart3 },
-  { id: 'assets', label: 'Assets & Drive', icon: FolderOpen }
+  { id: 'assets', label: 'Assets & Drive', icon: FolderOpen },
+  { id: 'options', label: 'Options', icon: Settings }
 ]
 
 const STATUS_BADGE = {
@@ -84,6 +86,7 @@ export default function ClientDetailPage() {
       case 'posts': return <PostsTab client={client} />
       case 'stats': return <StatsTab client={client} />
       case 'assets': return <AssetsTab client={client} />
+      case 'options': return <OptionsTab client={client} onClientUpdate={loadClient} />
       default: return null
     }
   }
