@@ -50,22 +50,22 @@ function TagList({ label, items, onAdd, onRemove }) {
 function ColorPicker({ value, onChange }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="relative">
+    <div className="relative shrink-0">
       <button onClick={() => setOpen(!open)}
-        className="w-6 h-6 rounded-md border-2 border-gray-200 hover:border-gray-400 transition-colors cursor-pointer"
+        className="w-6 h-6 rounded-md border-2 border-gray-200 hover:border-gray-400 transition-colors cursor-pointer shrink-0"
         style={{ background: value || '#e5e7eb' }} />
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute top-8 left-0 z-50 bg-white rounded-xl shadow-xl border border-gray-200 p-2 grid grid-cols-4 gap-1.5">
+          <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50 bg-white rounded-xl shadow-xl border border-gray-200 p-2.5 grid grid-cols-4 gap-2 w-max">
             <button onClick={() => { onChange(''); setOpen(false) }}
-              className="w-7 h-7 rounded-md border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-xs hover:border-gray-400">
-              <X size={10} />
+              className="w-8 h-8 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:border-gray-400">
+              <X size={12} />
             </button>
             {PRESET_COLORS.map(c => (
               <button key={c} onClick={() => { onChange(c); setOpen(false) }}
-                className={clsx('w-7 h-7 rounded-md border-2 transition-transform hover:scale-110',
-                  value === c ? 'border-gray-800 scale-110' : 'border-transparent')}
+                className={clsx('w-8 h-8 rounded-lg border-2 transition-all hover:scale-110',
+                  value === c ? 'border-gray-800 ring-2 ring-gray-300 scale-110' : 'border-white')}
                 style={{ background: c }} />
             ))}
           </div>
@@ -89,14 +89,14 @@ function ColorMapEditor({ label, values, colorMap, clientId, colKey, allColors }
       {values.length === 0 ? (
         <p className="text-sm text-gray-400">Ajoutez des valeurs dans l'onglet Listes d'abord</p>
       ) : (
-        <div className="space-y-2.5">
+        <div className="space-y-1">
           {values.map(val => (
-            <div key={val} className="flex items-center gap-3">
+            <div key={val} className="flex items-center gap-3 py-1.5 px-2 rounded-lg hover:bg-gray-50">
               <ColorPicker value={colorMap[val] || ''} onChange={c => saveColor(val, c)} />
-              <span className="text-sm font-medium text-gray-700">{val}</span>
+              <span className="text-sm font-medium text-gray-700 flex-1">{val}</span>
               {colorMap[val] && (
-                <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full text-white" style={{ background: colorMap[val] }}>
-                  {val}
+                <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full text-white shrink-0" style={{ background: colorMap[val] }}>
+                  Aperçu
                 </span>
               )}
             </div>
